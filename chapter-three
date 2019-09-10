@@ -1,0 +1,615 @@
+//code 3.1
+//routes/web.php
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+//code 3.2
+//routes/web.php
+Route::get('/', 'WelcomeController@index');
+
+
+//code 3.3
+//routes/web.php
+Route::resource('tasks', 'TaskController');
+
+//code 3.4
+$ php artisan route:list
+
+//code 3.5
+$ php artisan make:controller TaskController --resource
+//the output of code 3.5
+Controller created successfully.
+
+------------
+
+//code 3.6
+// app/Http/Controllers/TaskController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class TaskController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        //
+    }
+}
+
+-----------------
+
+//code 3.7
+//routes/web.php
+Route::resource('tasks', 'TaskController');
+
+-----------------
+
+//code 3.8
+// app/Http/Controllers/TaskController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Task;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
+class TaskController extends Controller
+{
+    
+    /**
+   * Create a new controller instance.
+   *
+   * @return void
+   */
+  public function __construct()
+  {
+      $this->middleware('auth')->except('index', 'show');
+  }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
+        $tasks = Task::get();
+        return view('tasks.index', compact('tasks'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+            return view('tasks.create');
+        }
+        else {
+          return redirect('home');
+        }
+        
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+            
+            $post = new Task;
+  $post->title = $request->input('title');
+  $post->body = $request->input('body');  
+  $post->save();
+  
+  if($post){
+             return redirect('tasks');
+         }
+            
+        }
+        
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+        $task = Task::findOrFail($id);        
+        return view('tasks.show', compact('task'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        //
+         if(Auth::user()->is_admin == 1){
+        $task = Task::findOrFail($id);
+        return view('tasks.edit', compact('task'));
+      }
+      else {
+        // code...
+        return redirect('home');
+      }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+            
+            $post = Task::findOrFail($id);
+  $post->title = $request->input('title');
+  $post->body = $request->input('body');  
+  $post->save();
+  
+  if($post){
+             return redirect('tasks');
+         }
+            
+        }
+        
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        //
+    }
+}
+
+-------------
+
+//code 3.9
+//creating Task model and database table
+$ php artisan make:model Task -m
+Model created successfully.
+Created Migration: 2019_02_16_041652_create_tasks_table
+
+------------
+
+//code 3.10
+//app/Task.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Task extends Model
+{
+    //
+    protected $fillable = [
+        'title', 'body'
+    ];
+}
+
+-----------
+
+//code 3.11
+// database/migrations/tasks table
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateTasksTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('tasks', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('title');
+            $table->text('body');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('tasks');
+    }
+}
+
+----------------
+
+//code 3.12
+public function __construct()
+  {
+      $this->middleware('auth')->except('index', 'show');
+  }
+
+------------
+
+//code 3.13
+public function show($id)
+    {
+        //
+        $task = Task::findOrFail($id);        
+        return view('tasks.show', compact('task'));
+    }
+
+------------
+
+//code 3.14
+// resources/views/tasks/show.blade.php
+<div class="card-body">                    
+                    {{ $task->title }}                    
+                </div>
+                <div class="card-body">                    
+                    {{ $task->body }}                    
+                </div>
+
+
+-------------
+
+//code 3.15
+public function create()
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+            return view('tasks.create');
+        }
+        else {
+          return redirect('home');
+        }
+        
+    }
+
+-------------
+
+//code 3.16
+// app/HTTP/Controllers/TaskController.php
+/**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $tasks = Task::get();
+        return view('tasks.index', compact('tasks'));
+    }
+
+
+---------------
+
+//code 3.17
+Method   | URI                  | Action       | Route Name
+----------|-----------------------|--------------|---------------------
+GET       | 'tasks'              | index        | tasks.index
+GET       | 'tasks/create'       | create       | tasks.create
+POST      | 'tasks'              | store        | tasks.store
+GET       | 'tasks/{task}'      | show         | tasks.show
+GET       | 'tasks/{task}/edit' | edit         | tasks.edit
+PUT/PATCH | 'tasks/{task}'      | update       | tasks.update
+DELETE    | 'tasks/{task}'      | destroy      | tasks.destroy
+
+---------------
+
+//code 3.18
+Route::get('tasks/important', 'TaskController@important');
+
+----------------
+
+//code 3.19
+Route::get('tasks/important', 'TaskController@important');
+Route::resource('tasks', 'TaskController');
+
+---------------
+
+//code 3.20
+    public function store(Request $request)
+    {
+        if(Auth::user()->is_admin == 1){
+          $post = new Task;          $post->title = $request->input('title');
+          $post->body = $request->input('body');  
+          $post->save();
+  
+          if($post){
+             return redirect('tasks');
+          }            
+        }        
+    }
+
+
+-------------
+
+//code 3.21
+    public function update(Request $request, $id)
+    {
+        if(Auth::user()->is_admin == 1){            
+            $post = Task::findOrFail($id);
+            $post->title = $request->input('title');
+            $post->body = $request->input('body');  
+            $post->save();  
+            if($post){
+             return redirect('tasks');
+            }            
+        }        
+    }
+
+
+--------------
+
+//code 3.22
+//app/Repositories/DBUserRepository.php
+<?php namespace RepositoryDB;
+use RepositoryInterface\UserRepositoryInterface as UserRepositoryInterface;
+use App\User;
+use Illuminate\Http\Request;
+
+class DBUserRepository implements UserRepositoryInterface {
+
+    public function all() {
+        return User::all();
+    }
+}
+
+----------------
+
+//code 3.23
+//app/Repositories/Interfaces/UserRepositoryInterface.php
+<?php namespace RepositoryInterface;
+
+ interface UserRepositoryInterface {
+     public function all();    
+}
+
+---------------
+
+//code 3.24
+//app/HTTP/Controllers/UserController.php
+class UserController extends Controller {    
+    public $users;
+    public function __construct(DBUserRepository $users) {        
+        $this->users = $users;        
+    }
+…//code continues
+}
+
+
+------------
+
+//code 3.25
+//resources/views/tasks/index.blade.php
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Task Page</div>
+                <div class="card-body">                    
+                    @foreach($tasks as $task)                    
+                    <a href="/tasks/{{ $task->id }}">
+                        {{ $task->title }}
+                    </a> 
+                    <p></p>
+                    @endforeach                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+----------------
+
+//code 3.26
+    <html>
+        <head>
+            <title>App Name - @yield('title')</title>
+        </head>
+        <body>
+            <div class="container">
+                @yield('content')
+            </div>
+        </body>
+    </html>
+The @yield('content') part uses our 'index.blade.php' page content. In the default 'app.blade.php' page, that part was included like this:
+<main class="py-4">
+            @yield('content')
+        </main>
+
+
+-------------------
+
+//code 3.27
+    @foreach ($users as $user)
+        @if ($user->admin == 1)
+            @continue
+        @endif
+
+        <li>{{ $user->name }}</li>
+        @if ($user->number == 1)
+            @break
+        @endif
+    @endforeach
+We can also check whether the user is a registered member or not by this simple check-up method:
+//code 3.28
+    @auth
+        // The user is authenticated...
+    @endauth
+
+    @guest
+        // The user is not authenticated...
+    @endguest
+
+-----------------
+
+//code 3.29
+    @auth('admin')
+        // The user is authenticated...
+    @endauth
+
+    @guest('admin')
+        // The user is not authenticated...
+    @endguest
+
+----------------
+
+//code 3.30
+@if (count($users) === 1)
+        I have one user!
+    @elseif (count($users) > 1)
+        I have multiple users!
+    @else
+        I don't have any users!
+    @endif
+
+
+----------------
+
+//code 3.31
+    @unless (Auth::check())
+        You are not signed in.
+    @endunless
+
+
+----------------
+
+//code 3.32
+    @isset($images)
+        // $images is defined and is not null...
+    @endisset
+
+    @empty($images)
+        // $images is 'empty'...
+    @endempty
+
+
+---------------
+
+//code 3.33
+@foreach ($users as $user)
+      @if ($user->id == 1)
+          @continue
+      @endif
+
+      <li>{{ $user->name }}</li>
+
+      @if ($user->id == 3)
+          @break
+      @endif
+  @endforeach
+
+
+

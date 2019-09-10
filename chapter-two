@@ -1,0 +1,547 @@
+
+//how to install Composer globally
+
+$ sudo apt-get update
+
+$ sudo apt-get install curl php-cli php-mbstring git unzip
+
+$ curl -sS https://getcomposer.org/installer -o composer-setup.php
+
+
+--------------------
+
+$ sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+
+-----------------
+
+//code 2.1
+//installing Laravel with global composer
+composer create-project --prefer-dist laravel/laravel YourFirstLaravelProject
+
+//code 2.2
+composer create-project --prefer-dist laravel/laravel blog "5.7.*"
+
+//code 2.3
+//running Laravel
+$ php artisan serve
+
+//code 2.4
+//starting local web server in laravel
+$ php artisan serve
+
+
+//code 2.5
+//Taking application to the maintenance mode
+$ php artisan down
+
+//code 2.6
+//Clearing cache
+$ php artisan cache:clear
+
+
+//code 2.7
+$ cd /var/www/html
+
+//code 2.8
+$ sudo mkdir MyFirstLaravelProject
+
+//code 2.9
+$ sudo php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+
+//code 2.10
+$ sudo php composer-setup.php
+
+
+/code 2.11
+{
+    "require": {
+        "monolog/monolog": "1.0.*"
+    }
+}
+
+//code 2.12
+$ php composer.phar install
+
+//code 2.13
+$ sudo composer create-project --prefer-dist laravel/laravel blog
+
+//code 2.14
+// installing VirtualBox on MAC/Linux
+$ sudo apt-get install virtualbox
+
+---------------------------------------
+
+//code 2.15
+// installing Vagrant
+ss@ss-H81M-S1:~$ sudo apt-get install vagrant
+[sudo] password for ss: 
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  gir1.2-keybinder-3.0 jsonlint libcdaudio1 libenca0 libjs-excanvas
+  libkeybinder-3.0-0 libllvm5.0 libllvm5.0:i386 libmcrypt4
+  libp11-kit-gnome-keyring:i386 libslv2-9 libsodium18 libvpx3:i386 mercurial
+  mercurial-common php-cli-prompt php-composer-semver
+  php-composer-spdx-licenses php-json-schema php-symfony-console
+  php-symfony-filesystem php-symfony-finder php-symfony-process
+Use 'sudo apt autoremove' to remove them.
+The following additional packages will be installed:
+  bsdtar bundler fonts-lato libgmp-dev libgmpxx4ldbl libruby2.3 rake ruby
+  ruby-bundler ruby-childprocess ruby-dev ruby-did-you-mean ruby-domain-name
+  ruby-erubis ruby-ffi ruby-http-cookie ruby-i18n ruby-listen ruby-log4r
+  ruby-mime-types ruby-minitest ruby-molinillo ruby-net-http-persistent
+  ruby-net-scp ruby-net-sftp ruby-net-ssh ruby-net-telnet ruby-netrc
+  ruby-nokogiri ruby-power-assert ruby-rb-inotify ruby-rest-client
+  ruby-sqlite3 ruby-test-unit ruby-thor ruby-unf ruby-unf-ext ruby2.3
+  ruby2.3-dev rubygems-integration sqlite3
+Suggested packages:
+  bsdcpio gmp-doc libgmp10-doc libmpfr-dev ri publicsuffix sqlite3-doc
+The following NEW packages will be installed:
+  bsdtar bundler fonts-lato libgmp-dev libgmpxx4ldbl libruby2.3 rake ruby
+  ruby-bundler ruby-childprocess ruby-dev ruby-did-you-mean ruby-domain-name
+  ruby-erubis ruby-ffi ruby-http-cookie ruby-i18n ruby-listen ruby-log4r
+  ruby-mime-types ruby-minitest ruby-molinillo ruby-net-http-persistent
+  ruby-net-scp ruby-net-sftp ruby-net-ssh ruby-net-telnet ruby-netrc
+  ruby-nokogiri ruby-power-assert ruby-rb-inotify ruby-rest-client
+  ruby-sqlite3 ruby-test-unit ruby-thor ruby-unf ruby-unf-ext ruby2.3
+  ruby2.3-dev rubygems-integration sqlite3 vagrant
+0 upgraded, 42 newly installed, 0 to remove and 5 not upgraded.
+Need to get 9,248 kB of archives.
+After this operation, 44.8 MB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+Get:1 http://in.archive.ubuntu.com/ubuntu xenial/main amd64 fonts-lato all 2.0-1 [2,693 kB]
+Get:2 http://in.archive.ubuntu.com/ubuntu xenial-updates/universe amd64 bsdtar amd64 3.1.2-11ubuntu0.16.04.4 [48.0 kB]
+Get:3 http://in.archive.ubuntu.com/ubuntu xenial/main amd64 rubygems-integration all 1.10 [4,966 B]
+Get:4 http://in.archive.ubuntu.com/ubuntu xenial/main amd64 rake all 10.5.0-2 [48.2 kB]
+….
+
+
+---------------------------
+
+//code 2.16
+$ vagrant -v
+//output
+Vagrant 2.2.3
+
+------------
+
+//code 2.17
+$ vagrant box add ubuntu/trusty64
+==> box: Loading metadata for box 'ubuntu/trusty64'
+    box: URL: https://vagrantcloud.com/ubuntu/trusty64
+==> box: Adding box 'ubuntu/trusty64' (v20181218.1.0) for provider: virtualbox
+    box: Downloading: https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/20181218.1.0/providers/virtualbox.box
+==> box: Successfully added box 'ubuntu/trusty64' (v20181218.1.0) for 'virtualbox'!
+
+---------
+
+//code 2.18
+ss@ss-H81M-S1:~$ vagrant init ubuntu/trusty64
+A `Vagrantfile` has been placed in this directory. You are now
+ready to `vagrant up` your first virtual environment! Please read
+the comments in the Vagrantfile as well as documentation on
+`vagrantup.com` for more information on using Vagrant.
+ss@ss-H81M-S1:~$ vagrant up
+Bringing machine 'default' up with 'virtualbox' provider...
+==> default: Importing base box 'ubuntu/trusty64'...
+==> default: Matching MAC address for NAT networking...
+==> default: Checking if box 'ubuntu/trusty64' is up to date...
+==> default: Setting the name of the VM: ss_default_1547081879727_59147
+==> default: Clearing any previously set forwarded ports...
+==> default: Clearing any previously set network interfaces...
+==> default: Preparing network interfaces based on configuration...
+    default: Adapter 1: nat
+==> default: Forwarding ports...
+    default: 22 (guest) => 2222 (host) (adapter 1)
+==> default: Booting VM...
+==> default: Waiting for machine to boot. This may take a few minutes...
+    default: SSH address: 127.0.0.1:2222
+    default: SSH username: vagrant
+    default: SSH auth method: private key
+    default: 
+    default: Vagrant insecure key detected. Vagrant will automatically replace
+    default: this with a newly generated keypair for better security.
+    default: 
+    default: Inserting generated public key within guest...
+    default: Removing insecure key from the guest if it's present...
+    default: Key inserted! Disconnecting and reconnecting using new SSH key...
+==> default: Machine booted and ready!
+==> default: Checking for guest additions in VM...
+    default: The guest additions on this VM do not match the installed version of
+    default: VirtualBox! In most cases this is fine, but in rare cases it can
+    default: prevent things such as shared folders from working properly. If you see
+    default: shared folder errors, please make sure the guest additions within the
+    default: virtual machine match the version of VirtualBox you have installed on
+    default: your host and reload your VM.
+    default: 
+    default: Guest Additions Version: 4.3.36
+    default: VirtualBox Version: 5.1
+==> default: Mounting shared folders...
+    default: /vagrant => /home/ss
+...
+
+----------------------
+
+//code 2.19
+$ sudo composer global require "laravel/homestead=~2.0"
+[sudo] password for ss: 
+Changed current directory to /home/ss/.composer
+Do not run Composer as root/super user! See https://getcomposer.org/root for details
+./composer.json has been created
+Loading composer repositories with package information
+Updating dependencies (including require-dev)
+Package operations: 6 installs, 0 updates, 0 removals
+  - Installing symfony/process (v3.4.21): Downloading (100%)         
+  - Installing psr/log (1.1.0): Downloading (100%)         
+  - Installing symfony/debug (v4.2.2): Downloading (100%)         
+  - Installing symfony/polyfill-mbstring (v1.10.0): Downloading (100%)         
+  - Installing symfony/console (v3.4.21): Downloading (100%)         
+  - Installing laravel/homestead (v2.2.2): Downloading (100%)         
+symfony/console suggests installing psr/log-implementation (For using the console logger)
+symfony/console suggests installing symfony/event-dispatcher ()
+symfony/console suggests installing symfony/lock ()
+Writing lock file
+Generating autoload files
+
+------------------
+
+//code 2.20
+// installing Homestead
+$ vagrant box add laravel/homestead
+==> box: Loading metadata for box 'laravel/homestead'
+    box: URL: https://vagrantcloud.com/laravel/homestead
+This box can work with multiple providers! The providers that it
+can work with are listed below. Please review the list and choose
+the provider you will be working with.
+
+1) hyperv
+2) parallels
+3) virtualbox
+4) vmware_desktop
+
+Enter your choice: 3
+==> box: Adding box 'laravel/homestead' (v6.4.0) for provider: virtualbox
+    box: Downloading: https://vagrantcloud.com/laravel/boxes/homestead/versions/6.4.0/providers/virtualbox.box
+    box: Download redirected to host: vagrantcloud-files-production.s3.amazonaws.com
+==> box: Successfully added box 'laravel/homestead' (v6.4.0) for 'virtualbox'!
+
+--------------------
+
+//code 2.21
+$ cd ~
+$ git clone https://github.com/laravel/homestead.git Homestead
+Cloning into 'Homestead'...
+remote: Enumerating objects: 22, done.
+remote: Counting objects: 100% (22/22), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 3232 (delta 14), reused 10 (delta 6), pack-reused 3210
+Receiving objects: 100% (3232/3232), 689.62 KiB | 926.00 KiB/s, done.
+Resolving deltas: 100% (1942/1942), done.
+Checking connectivity... done.
+
+---------------
+
+//code 2.22
+//for Mac and Linux...
+$ bash init.sh
+//for Windows...
+ init.bat
+
+------------
+
+//code 2.23
+$ cd ~/Homestead
+$ ls -la
+total 184
+drwxrwxr-x  9 ss ss  4096 Jan 10 07:07 .
+drwxr-xr-x 54 ss ss  4096 Jan 10 07:03 ..
+-rw-rw-r--  1 ss ss   332 Jan 10 07:07 after.sh
+-rw-rw-r--  1 ss ss  7669 Jan 10 07:07 aliases
+drwxrwxr-x  2 ss ss  4096 Jan 10 07:03 bin
+-rw-rw-r--  1 ss ss   187 Jan 10 07:03 CHANGELOG.md
+-rw-rw-r--  1 ss ss   853 Jan 10 07:03 composer.json
+-rw-rw-r--  1 ss ss 82005 Jan 10 07:03 composer.lock
+-rw-rw-r--  1 ss ss   213 Jan 10 07:03 .editorconfig
+drwxrwxr-x  8 ss ss  4096 Jan 10 07:03 .git
+-rw-rw-r--  1 ss ss    14 Jan 10 07:03 .gitattributes
+drwxrwxr-x  2 ss ss  4096 Jan 10 07:03 .github
+-rw-rw-r--  1 ss ss   154 Jan 10 07:03 .gitignore
+-rw-rw-r--  1 ss ss   681 Jan 10 07:07 Homestead.yaml
+-rw-rw-r--  1 ss ss   265 Jan 10 07:03 init.bat
+-rw-rw-r--  1 ss ss   250 Jan 10 07:03 init.sh
+-rw-rw-r--  1 ss ss  1077 Jan 10 07:03 LICENSE.txt
+-rw-rw-r--  1 ss ss   383 Jan 10 07:03 phpunit.xml.dist
+-rw-rw-r--  1 ss ss  1404 Jan 10 07:03 readme.md
+drwxrwxr-x  3 ss ss  4096 Jan 10 07:03 resources
+drwxrwxr-x  2 ss ss  4096 Jan 10 07:03 scripts
+drwxrwxr-x  4 ss ss  4096 Jan 10 07:03 src
+drwxrwxr-x  4 ss ss  4096 Jan 10 07:03 tests
+-rw-rw-r--  1 ss ss   277 Jan 10 07:03 .travis.yml
+-rw-rw-r--  1 ss ss  1878 Jan 10 07:03 Vagrantfile
+
+
+-----------------
+
+//code 2.24
+ss@ss-H81M-S1:~/Homestead$ sudo gedit Homestead.yaml 
+
+-------------
+
+//code 2.25
+---
+ip: "192.168.10.10"
+memory: 2048
+cpus: 1
+provider: virtualbox
+
+authorize: ~/.ssh/id_rsa.pub
+
+keys:
+    - ~/.ssh/id_rsa
+
+folders:
+    - map: ~/code
+      to: /home/vagrant/code
+
+sites:
+    - map: homestead.test
+      to: /home/vagrant/code/public
+
+databases:
+    - homestead
+
+# ports:
+#     - send: 50000
+#       to: 5000
+#     - send: 7777
+#       to: 777
+#       protocol: udp
+
+# blackfire:
+#     - id: foo
+#       token: bar
+#       client-id: foo
+#       client-token: bar
+
+# zray:
+#  If you've already freely registered Z-Ray, you can place the token here.
+#     - email: foo@bar.com
+#       token: foo
+#  Don't forget to ensure that you have 'zray: "true"' for your site.
+
+
+-----------------------
+
+folders:
+    - map: ~/code
+      to: /home/vagrant/code
+
+sites:
+    - map: homestead.test
+      to: /home/vagrant/code/public
+
+databases:
+- homestead
+
+------------------
+
+//code 2.26
+// Homestead.yaml
+---
+ip: "192.168.10.10"
+memory: 2048
+cpus: 1
+provider: virtualbox
+
+authorize: ~/.ssh/id_rsa.pub
+
+keys:
+    - ~/.ssh/id_rsa
+
+folders:
+    - map: ~/code
+      to: /home/vagrant/code
+
+    - map: ~/code
+      to: /home/vagrant/code
+
+sites:
+    - map: test.localhost
+      to: /home/vagrant/code/blog/public
+
+    - map: my.local
+      to: /home/vagrant/code/larastartofinish/public
+
+databases:
+    - homestead
+- myappo
+
+
+------------------------
+
+/code 2.27
+//editing /etc/hosts file
+$ sudo gedit /etc/hosts
+
+//output of code 2.27
+127.0.0.1    localhost
+::1     ip6-localhost ip6-loopback
+127.0.1.1    ss-H81M-S1
+127.0.0.1    sandbox.dev
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+----------------
+
+//code 2.28
+$ vagrant up --provision
+
+----------------
+
+//code 2.30
+    - map: ~/code
+      to: /home/vagrant/code
+
+    - map: ~/code
+      to: /home/vagrant/code
+
+sites:
+    - map: test.localhost
+      to: /home/vagrant/code/blog/public
+
+    - map: my.local
+      to: /home/vagrant/code/larastartofinish/public
+
+-----------------
+
+//code 2.31
+ss@ss-H81M-S1:~/Homestead$ vagrant up --provision
+Bringing machine 'homestead-7' up with 'virtualbox' provider...
+==> homestead-7: Checking if box 'laravel/homestead' version '6.4.0' is up to date...
+==> homestead-7: Clearing any previously set forwarded ports...
+==> homestead-7: Vagrant has detected a configuration issue which exposes a
+==> homestead-7: vulnerability with the installed version of VirtualBox. The
+==> homestead-7: current guest is configured to use an E1000 NIC type for a
+==> homestead-7: network adapter which is vulnerable in this version of VirtualBox.
+==> homestead-7: Ensure the guest is trusted to use this configuration or update
+==> homestead-7: the NIC type using one of the methods below:
+==> homestead-7: 
+==> homestead-7:   https://www.vagrantup.com/docs/virtualbox/configuration.html#default-nic-type
+==> homestead-7:   https://www.vagrantup.com/docs/virtualbox/networking.html#virtualbox-nic-type
+==> homestead-7: Clearing any previously set network interfaces...
+==> homestead-7: Preparing network interfaces based on configuration...
+    homestead-7: Adapter 1: nat
+    homestead-7: Adapter 2: hostonly
+==> homestead-7: Forwarding ports...
+    homestead-7: 80 (guest) => 8000 (host) (adapter 1)
+    homestead-7: 443 (guest) => 44300 (host) (adapter 1)
+    homestead-7: 3306 (guest) => 33060 (host) (adapter 1)
+    homestead-7: 4040 (guest) => 4040 (host) (adapter 1)
+    homestead-7: 5432 (guest) => 54320 (host) (adapter 1)
+    homestead-7: 8025 (guest) => 8025 (host) (adapter 1)
+    homestead-7: 27017 (guest) => 27017 (host) (adapter 1)
+    homestead-7: 22 (guest) => 2222 (host) (adapter 1)
+==> homestead-7: Running 'pre-boot' VM customizations...
+==> homestead-7: Booting VM...
+==> homestead-7: Waiting for machine to boot. This may take a few minutes...
+    homestead-7: SSH address: 127.0.0.1:2222
+...
+
+---------------------
+
+//code 2.32
+ss@ss-H81M-S1:~/Homestead$ vagrant ssh
+Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-38-generic x86_64)
+
+* FYI Vagrant v2.2.2 & Virtualbox: 
+ * https://twitter.com/HomesteadDev/status/1071471881256079362
+
+259 packages can be updated.
+73 updates are security updates.
+Last login: Sat Jan 12 05:18:55 2019 from 10.0.2.2
+vagrant@homestead:~$ cd code/larastartofinish/
+
+--------------------
+
+//code 2.33
+vagrant@homestead:~$  mysql -u homestead -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 5
+Server version: 5.7.24-0ubuntu0.18.04.1 (Ubuntu)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| homestead          |
+| larastartofinish   |
+| myappo             |
+| mysql              |
+| performance_schema |
+| socket_wrench      |
+| sys                |
++--------------------+
+8 rows in set (0.08 sec)
+
+mysql> 
+
+
+----------------
+
+//code 2.34
+mysql> exit
+Bye
+vagrant@homestead:~$ exit
+logout
+Connection to 127.0.0.1 closed.
+ss@ss-H81M-S1:~/Homestead$ vagrant halt
+==> homestead-7: Attempting graceful shutdown of VM...
+ss@ss-H81M-S1:~/Homestead$ 
+
+
+-----------------
+
+//code 2.35
+$ composer create-project --prefer-dist laravel/laravel larastartofinish
+
+-----------------
+
+//code 2.36
+$ sudo rm -rf vendor/ composer.lock
+
+-----------------
+
+//code 2.37
+$ composer install
+
+---------------
+
+//code 2.38
+vagrant@homestead:~$ cd code/larastartofinish/
+
+---------------
+
+//code 2.39
+vagrant@homestead:~/code/larastartofinish$ php artisan make:controller ArticleController --resource –model=Article
+Controller created successfully.
+
+----------------
+
+

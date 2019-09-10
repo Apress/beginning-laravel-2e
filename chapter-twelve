@@ -1,0 +1,592 @@
+//code 12.1
+$ composer create-project --prefer-dist laravel/laravel apilara
+
+
+//code 12.2
+//creating a controller
+$ php artisan make:controller ArticleController --resource
+Controller created successfully.
+
+
+
+//code 12.3
+$ php artisan make:model Article -m
+
+
+//code 12.4
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateArticlesTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('articles', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('title');
+            $table->text('body');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('articles');
+    }
+}
+
+
+
+
+//code 12.5
+$ php artisan make:seeder ArticlesTableSeeder
+Seeder created successfully.
+
+
+//code 12.6
+$ php artisan make:factory ArticleFactory
+Factory created successfully
+
+
+//code 12.7
+//database/seeds/ ArticlesTableSeeder.php
+<?php
+
+use Illuminate\Database\Seeder;
+use App\Article;
+
+class ArticlesTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        factory(Article::class, 30)->create();
+    }
+}
+
+
+
+//code 12.8
+// database/factories/ArticleFactory.php
+<?php
+
+use Faker\Generator as Faker;
+
+$factory->define(App\Article::class, function (Faker $faker) {
+    return [
+        'title' => $faker->text(50),
+        'body' => $faker->text(300)
+    ];
+});
+
+
+
+//code 12.9
+$ php artisan db:seed
+Seeding: ArticlesTableSeeder
+Database seeding completed successfully.
+
+
+//code 12.10
+$ php artisan make:resource Article
+Resource created successfully.
+
+
+
+//code 12.13
+$ php artisan make:resource Article --collection
+$ php artisan make:resource ArticleCollection
+
+
+
+
+//code 12.14
+//app/Http/Resources/Article.php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Article extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+               return parent::toArray($request);        
+    }
+}
+
+
+
+//code 12.15
+//routes/api.php
+<?php
+
+use Illuminate\Http\Request;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+//list articles
+Route::get('articles', 'ArticleController@index');
+//list single article
+Route::get('article/{id}', 'ArticleController@show');
+//create new article
+Route::post('article', 'ArticleController@store');
+//update articles
+Route::put('article', 'ArticleController@store');
+//delete articles
+Route::delete('article/{id}', 'ArticleController@destroy');
+
+
+
+//code 12.16
+//app/Http/Controllers/ArticleController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Http\Requests;
+use App\Article;
+use App\Http\Resources\Article as ArticleResource;
+
+class ArticleController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //get articles
+        $articles = Article::paginate(15);
+        
+        //return collection of articles as resource
+        return ArticleResource::collection($articles);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //get article
+        $article = Article::findOrFail($id);
+        
+        //returning single article as a resource
+        return new ArticleResource($article);
+    }
+}
+
+
+
+//code 12.17
+//app/Http/Resources/Article.php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Article extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {  
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'body' => $this->body
+        ];
+    }
+}
+
+
+
+//code 12.18
+public function show($id)
+    {
+        //get article
+        $article = Article::findOrFail($id);
+        
+        //returning single article as a resource
+        return new ArticleResource($article);
+    }
+
+
+
+//code 12.19
+use App\User;
+    use App\Http\Resources\User as UserResource;
+    Route::get('/user', function () {
+        return new UserResource(User::find(1));
+    });
+
+
+
+
+//code 12.20
+//app/Http/Resources/Article.php
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class Article extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        // return parent::toArray($request);
+        
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'body' => $this->body
+        ];
+    }
+    
+    public function with($request) {
+        
+        return [
+            'version' => '1.0.0',
+            'author_url' => url('https://sanjib.site')
+        ];
+        
+    }
+}
+
+
+
+
+//code 12.21
+$ php artisan make:resource UserCollection
+Resource collection created successfully.
+
+
+
+//code 12.22
+//app/Http/Resources/UserCollection.php
+public function toArray($request)
+    {
+        return parent::toArray($request);
+    }
+
+
+
+//code 12.23
+//app/Http/Resources/UserCollection.php
+    public function toArray($request)
+        {
+            return [
+                'data' => $this->collection,
+                'links' => [
+                    'author_url' => 'https://sanjib.site',
+                ],
+            ];
+        }
+
+
+
+
+//code 12.24
+//routes/api.php
+use App\User;
+use App\Http\Resources\UserCollection;
+
+Route::get('/users', function () {
+      return new UserCollection(User::all());
+});
+
+
+
+
+//code 12.25
+$ composer require laravel/passport
+
+  - Installing psr/http-message (1.0.1): Downloading (100%)         
+  - Installing psr/http-factory (1.0.0): Downloading (100%)         
+  - Installing zendframework/zend-diactoros (2.1.1): Downloading (100%)         
+  - Installing symfony/psr-http-message-bridge (v1.2.0): Downloading (100%)         
+  - Installing phpseclib/phpseclib (2.0.15): Downloading (100%)         
+  - Installing defuse/php-encryption (v2.2.1): Downloading (100%)         
+  - Installing lcobucci/jwt (3.2.5): Downloading (100%)         
+  - Installing league/event (2.2.0): Downloading (100%)         
+  - Installing league/oauth2-server (7.3.3): Downloading (100%)         
+  - Installing ralouphie/getallheaders (2.0.5): Downloading (100%)         
+  - Installing guzzlehttp/psr7 (1.5.2): Downloading (100%)         
+  - Installing guzzlehttp/promises (v1.3.1): Downloading (100%)         
+  - Installing guzzlehttp/guzzle (6.3.3): Downloading (100%)         
+  - Installing firebase/php-jwt (v5.0.0): Downloading (100%)         
+- Installing laravel/passport (v7.2.2): Downloading (100%)
+
+
+
+//code 12.26
+$ php artisan migrate
+Migrating: 2016_06_01_000001_create_oauth_auth_codes_table
+Migrated:  2016_06_01_000001_create_oauth_auth_codes_table
+Migrating: 2016_06_01_000002_create_oauth_access_tokens_table
+Migrated:  2016_06_01_000002_create_oauth_access_tokens_table
+Migrating: 2016_06_01_000003_create_oauth_refresh_tokens_table
+Migrated:  2016_06_01_000003_create_oauth_refresh_tokens_table
+Migrating: 2016_06_01_000004_create_oauth_clients_table
+Migrated:  2016_06_01_000004_create_oauth_clients_table
+Migrating: 2016_06_01_000005_create_oauth_personal_access_clients_table
+Migrated:  2016_06_01_000005_create_oauth_personal_access_clients_table
+
+
+
+//code 12.27
+$ php artisan passport:install
+Encryption keys generated successfully.
+Personal access client created successfully.
+Client ID: 1
+Client secret: CqTb7j2ABO1qAMM1OHInXodrpTtVkPxFuaR9UZs1
+Password grant client created successfully.
+Client ID: 2
+Client secret: LLxn4BP4Px4q4zJlt4u9JXGe3y4ghUIGQ4TqOv49
+
+
+
+//code 12.28
+//app/User.php
+<?php
+
+namespace App;
+
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+}
+
+
+
+//code 12.29
+//app/Providers/ AuthServiceProvider.php
+<?php
+
+namespace App\Providers;
+
+use Laravel\Passport\Passport;
+
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+
+class AuthServiceProvider extends ServiceProvider
+{
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array
+     */
+    protected $policies = [
+        // 'App\Model' => 'App\Policies\ModelPolicy',
+    ];
+
+    /**
+     * Register any authentication / authorization services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        Passport::routes();
+    }
+}
+
+
+
+//code 12.30
+//config/auth.php
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
+    ],
+
+    'api' => [
+        'driver' => 'passport',
+        'provider' => 'users',
+    ],
+],
+
+
+
+//code 12.31
+$ php artisan vendor:publish –tag=passport-components
+
+
+
+//code 12.32
+//resources/js/app.js
+Vue.component(
+    'passport-clients',
+    require('./components/passport/Clients.vue').default
+);
+
+Vue.component(
+    'passport-authorized-clients',
+    require('./components/passport/AuthorizedClients.vue').default
+);
+
+Vue.component(
+    'passport-personal-access-tokens',
+    require('./components/passport/PersonalAccessTokens.vue').default
+);
+
+
+//code 12.33
+//resources/views/home.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Dashboard</div>
+
+                <div class="card-body">
+                    @if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+                    <passport-clients></passport-clients>
+<passport-authorized-clients></passport-authorized-clients>
+<passport-personal-access-tokens></passport-personal-access-tokens>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+
+//code 12.34
+$ php artisan passport:client
+
+ Which user ID should the client be assigned to?:
+ > 2
+
+ What should we name the client?:
+ > sanjib
+
+ Where should we redirect the request after authorization? [http://localhost/auth/callback]:
+ > 
+
+New client created successfully.
+Client ID: 4
+Client secret: E02repG4eeeklfpaeX8i6YdtDi2tYQS6aYuKIO8I
+
+
+
+
+//code 12.35
+Route::get('/redirect', function () {
+    $query = http_build_query([
+        'client_id' => '5',
+        'redirect_uri' => 'https://sanjib.site/callback',
+        'response_type' => 'code',
+        'scope' => '',
+    ]);
+
+    return redirect('http://localhost:8000/oauth/authorize?'.$query);
+});
+
+
+
+//code 12.36
+http://localhost:8000/oauth/authorize?client_id=5&redirect_uri=https%3A%2F%2Fsanjib.site%2Fcallback&response_type=code&scope=
+
+
+

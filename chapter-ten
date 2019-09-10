@@ -1,0 +1,609 @@
+//code 10.1
+$ composer create-project --prefer-dist laravel/laravel laranew 
+
+
+//code 10.2
+ss@ss-H81M-S1:~/code/laranew$ php artisan -V
+Laravel Framework 5.8.4
+
+
+//code 10.3
+//app/User.php
+<?php
+
+namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable implements MustVerifyEmail
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+}
+
+
+
+//code 10.4
+class User extends Authenticatable implements MustVerifyEmail
+
+
+//code 10.5
+public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+
+
+
+
+//code 10.6
+mysql> show databases;
++-----------------------+
+| Database              |
++-----------------------+
+| information_schema    |
+| b2a                   |
+| firstnews             |
+| imagery               |
+| laravel55             |
+| laravelforartisans    |
+| laravelforbeginning   |
+| laravelmodelrelations |
+| laravelrelations      |
+| laravelstarttofinish  |
+| myappo                |
+| mymvc                 |
+| mysql                 |
+| newdata               |
+| news                  |
+| performance_schema    |
+| practiceone           |
+| prisma                |
+| sys                   |
+| test                  |
+| twoprac               |
++-----------------------+
+21 rows in set (0.20 sec)
+
+mysql> use newdata;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++-------------------+
+| Tables_in_newdata |
++-------------------+
+| migrations        |
+| password_resets   |
+| users             |
++-------------------+
+3 rows in set (0.00 sec)
+
+mysql> select * from users;
++----+--------+-------------------------+---------------------+--------------------------------------------------------------+----------------+---------------------+---------------------+
+| id | name   | email                   | email_verified_at   | password                                                     | remember_token | created_at          | updated_at          |
++----+--------+-------------------------+---------------------+--------------------------------------------------------------+----------------+---------------------+---------------------+
+|  1 | ss     | s@s.com                 | NULL                | $2y$10$T3lZcOOCC5C/OIRpOSO2SefpKfhtJF8myWaLeLAgNU4nthruQ2Dgu | NULL           | 2019-03-17 03:51:29 | 2019-03-17 03:51:29 |
+|  2 | sanjib | sanjib12sinha@gmail.com | 2019-03-17 03:59:08 | $2y$10$kv34GZLUvIZLt/UqprrjCuOeS22.dI9i0R73vAX5IVfdLOiDpDauu | NULL           | 2019-03-17 03:54:22 | 2019-03-17 03:59:08 |
++----+--------+-------------------------+---------------------+--------------------------------------------------------------+----------------+---------------------+---------------------+
+2 rows in set (0.01 sec)
+
+
+//code 10.7
+ss@ss-H81M-S1:~/code/laranew$ php artisan tinker
+Psy Shell v0.9.9 (PHP 7.2.15-1+ubuntu16.04.1+deb.sury.org+1 — cli) by Justin Hileman
+>>> $user = new App\User;
+=> App\User {#2925}
+>>> $user;
+=> App\User {#2925}
+>>> $user = App\User::find(1);
+=> App\User {#2933
+     id: 1,
+     name: "ss",
+     email: "s@s.com",
+     email_verified_at: null,
+     created_at: "2019-03-17 03:51:29",
+     updated_at: "2019-03-17 03:51:29",
+   }
+>>> 
+
+
+
+
+//code 10.8
+MAIL_DRIVER=log
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+
+
+
+//code 10.9
+//app/Http/Kearnel.php
+protected $routeMiddleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+    ];
+The last line in the above code (10.9) is important here: '
+'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class
+
+
+
+//code 10.10
+//routes/web.php
+Route::get('/', function () {
+    return view('welcome');
+})->middleware('verified');
+Auth::routes(['verify' => true]);
+
+
+
+//code 10.11
+// storage/logs/laravel-2019-03-17.log
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+[Laravel](http://localhost)
+
+# Hello!
+
+Please click the button below to verify your email address.
+
+Verify Email Address: http://localhost:8000/email/verify/2?expires=1552798462&signature=80dd1cd1315533a03d03f66fb0e90b5a9b21c454257b6a7e96b4d5ed9059b2f1
+
+If you did not create an account, no further action is required.
+
+Regards,Laravel
+
+If you’re having trouble clicking the "Verify Email Address" button, copy and paste the URL below
+into your web browser: [http://localhost:8000/email/verify/2?expires=1552798462&signature=80dd1cd1315533a03d03f66fb0e90b5a9b21c454257b6a7e96b4d5ed9059b2f1](http://localhost:8000/email/verify/2?expires=1552798462&signature=80dd1cd1315533a03d03f66fb0e90b5a9b21c454257b6a7e96b4d5ed9059b2f1)
+
+© 2019 Laravel. All rights reserved.
+
+
+
+//code 10.12
+ss@ss-H81M-S1:~$ cd code/laranew/
+ss@ss-H81M-S1:~/code/laranew$ php artisan tinker
+Psy Shell v0.9.9 (PHP 7.2.15-1+ubuntu16.04.1+deb.sury.org+1 — cli) by Justin Hileman
+>>> $user = App\User::find(2);
+=> App\User {#2932
+     id: 2,
+     name: "sanjib",
+     email: "sanjib12sinha@gmail.com",
+     email_verified_at: "2019-03-17 03:59:08",
+     created_at: "2019-03-17 03:54:22",
+     updated_at: "2019-03-17 03:59:08",
+   }
+>>> 
+Look at this line: 
+“email_verified_at: "2019-03-17 03:59:08",
+
+
+
+
+//code 10.13
+// app/Providers/EventServiceProvider.php
+protected $listen = [
+        Registered::class => [
+            SendEmailVerificationNotification::class,
+        ],
+    ];
+
+
+
+//code 10.14
+$ composer require guzzlehttp/guzzle
+
+
+
+//code 10.15
+//config/mail.php
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Driver
+    |--------------------------------------------------------------------------
+    |
+    | Laravel supports both SMTP and PHP's "mail" function as drivers for the
+    | sending of e-mail. You may specify which one you're using throughout
+    | your application here. By default, Laravel is setup for SMTP mail.
+    |
+    | Supported: "smtp", "sendmail", "mailgun", "mandrill", "ses",
+    |            "sparkpost", "log", "array"
+    |
+    */
+
+    'driver' => env('MAIL_DRIVER', 'smtp'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SMTP Host Address
+    |--------------------------------------------------------------------------
+    |
+    | Here you may provide the host address of the SMTP server used by your
+    | applications. A default option is provided that is compatible with
+    | the Mailgun mail service which will provide reliable deliveries.
+    |
+    */
+
+    'host' => env('MAIL_HOST', 'smtp.mailtrap.io'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SMTP Host Port
+    |--------------------------------------------------------------------------
+    |
+    | This is the SMTP port used by your application to deliver e-mails to
+    | users of the application. Like the host we have set this value to
+    | stay compatible with the Mailgun e-mail application by default.
+    |
+    */
+
+    'port' => env('MAIL_PORT', 465),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Global "From" Address
+    |--------------------------------------------------------------------------
+    |
+    | You may wish for all e-mails sent by your application to be sent from
+    | the same address. Here, you may specify a name and address that is
+    | used globally for all e-mails that are sent by your application.
+    |
+    */
+
+    'from' => [
+        'address' => env('MAIL_FROM_ADDRESS', 'me@sanjib.site'),
+        'name' => env('MAIL_FROM_NAME', 'Sanjib Sinha'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | E-Mail Encryption Protocol
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the encryption protocol that should be used when
+    | the application send e-mail messages. A sensible default using the
+    | transport layer security protocol should provide great security.
+    |
+    */
+
+    'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SMTP Server Username
+    |--------------------------------------------------------------------------
+    |
+    | If your SMTP server requires a username for authentication, you should
+    | set it here. This will get used to authenticate with your server on
+    | connection. You may also set the "password" value below this one.
+    |
+    */
+
+    'username' => env('MAIL_USERNAME'),
+
+    'password' => env('MAIL_PASSWORD'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sendmail System Path
+
+
+
+
+//code 10.16
+//.env
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=465
+MAIL_USERNAME=**************
+MAIL_PASSWORD=**************
+MAIL_ENCRYPTION=null
+
+
+
+
+//code 10.17
+$ php artisan make:mail SendMailable
+
+
+
+//code 10.18
+//app/Mail/SendMailable.php
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class SendMailable extends Mailable
+{
+    use Queueable, SerializesModels;
+    public $name;
+
+    /**
+     * Create a new message instance.
+     *
+     * @return void
+     */
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
+    public function build()
+    {
+        return $this->view('email.name');
+    }
+}
+
+
+
+//code 10.19
+//resources/views/email/name.blade.php
+<div>
+    Hi, This is : {{ $name }}
+</div>
+
+
+
+
+//code 10.20
+//app/Http/Controllers/HomeController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendMailable;
+
+class HomeController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function index()
+    {
+        return view('home');
+    }
+    
+   public function mail()
+{
+   $name = 'Sanjib';
+   Mail::to('me@sanjib.site')->send(new SendMailable($name));
+   
+   return 'Email was sent';
+} 
+}
+
+
+
+//code 10.21
+//routes/web.php
+Route::get('/send/email', 'HomeController@mail');
+
+
+
+//code 10.22
+<div>
+    Hi, This is : Sanjib
+</div>
+
+
+
+//code 10.23
+   public function mail()
+{
+   $name = 'Sanjib';
+   Mail::to('me@sanjib.site')->send(new SendMailable($name));
+   return 'Email was sent';
+} 
+//The ‘MailTrap raw output is like this:
+//code 10.24
+Message-ID: <e792cc1223e458eccf9e01f7620c6be1@sanjib.site>
+Date: Fri, 22 Mar 2019 03:34:08 +0000
+Subject: Send Mailable
+From: Sanjib Sinha <me@sanjib.site>
+To: me@sanjib.site
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<div>
+    Hi, This is : Sanjib
+</div>
+
+
+
+
+//code 10.25
+//.env
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=*****************
+MAIL_PASSWORD=*****************
+MAIL_ENCRYPTION=tls
+Next, we will issue this command on our terminal.
+
+
+
+//code 10.26
+$ php artisan make:notification NewuserRegistered
+
+
+
+
+//code 10.27
+//app/Notifications/NewuserRegistered.php
+<?php
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class NewuserRegistered extends Notification
+{
+    use Queueable;
+
+    /**
+     * Create a new notification instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function via($notifiable)
+    {
+        return ['mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+                    ->line('A new user just registered.')
+                    ->action('MyApp', url('/'))
+                    ->line('Thank you for using our application!');
+    }
+
+    /**
+     * Get the array representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toArray($notifiable)
+    {
+        return [
+            //
+        ];
+    }
+}
+
+
+
+
+//code 10.28
+//resources/web.php
+use App\Notifications\NewuserRegistered;
+use App\User;
+Route::get('/notify', function () {
+User::find(1)->notify(new NewuserRegistered);
+    return view('notify');
+});
+
+
+
+//code 10.29
+[Laravel](http://localhost)
+
+# Hello!
+
+A new user just registered.
+
+MyApp: http://localhost:8000
+
+Thank you for using our application!
+
+Regards,Laravel
+
+If you’re having trouble clicking the "MyApp" button, copy and paste the URL below
+into your web browser: [http://localhost:8000](http://localhost:8000)
+
+© 2019 Laravel. All rights reserved.
+
+
+
+
+

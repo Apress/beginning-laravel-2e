@@ -1,0 +1,306 @@
+//code 9.1
+Route::bind('books', function ($id){
+return App\Book::where('id', $id)-->first();
+});
+
+
+
+//code 9.2
+public function store(Request $request)
+{
+  if (Auth::check()) {
+    // The user is logged in
+  }
+}
+
+
+
+
+//code 9.3
+use Illuminate\Http\Request;
+use App\Http\Requests;
+use App\Http\Controllers\Controller;
+use Illuminate\Auth\Guard as Auth;
+class BooksController extends Controller
+{
+/**
+* Display a listing of the resource
+*
+* @return Response
+*/
+protected $auth;
+public function __construct(Auth $auth) {
+$this-->auth = $auth;
+}
+public function store(Request $request)
+{
+$this->auth->attempt();
+}
+}
+
+
+//code 9.4
+namespace Illuminate\Auth;
+use RuntimeException;
+use Illuminate\Support\Str;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Auth\UserProvider;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Contracts\Auth\Guard as GuardContract;
+use Illuminate\Contracts\Cookie\QueueingFactory as CookieJar;
+use Illuminate\Contracts\Auth\Authenticatable as UserContract;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+class Guard implements GuardContract {....}
+//code is incomplete for brevity
+
+
+
+//code 9.6
+namespace Illuminate\Contracts\Auth;
+interface Guard
+{
+/**
+* Attempt to authenticate a user using the
+given credentials.
+*
+* @param array $credentials
+* @param bool $remember
+* @param bool $login
+* @return bool
+*/
+public function attempt(array $credentials = [],
+$remember = false, $login = true);
+.....
+}
+//this code is incomplete for brevity
+
+
+
+//code 9.7
+Route::get('allusers', 'UserController@getAllUsers');
+
+
+//code 9.8
+<?php namespace RepositoryDB;
+
+use RepositoryInterface\UserRepositoryInterface as UserRepositoryInterface;
+
+use App\User;
+use Illuminate\Http\Request;
+
+class DBUserRepository implements UserRepositoryInterface {
+
+    public function all() {
+
+        return User::all();
+
+    }
+}
+
+
+
+//code 9.9
+<?php namespace RepositoryInterface;
+
+ interface UserRepositoryInterface {
+     
+     public function all();
+    
+}
+
+
+//code 9.10
+<?php
+
+namespace App\Http\Controllers;
+
+use App\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+use RepositoryDB\DBUserRepository as DBUserRepository;
+
+class UserController extends Controller {
+
+    public $users;
+
+//constructor injection
+    public function __construct(DBUserRepository $users) {
+
+        $this->users = $users;
+
+    }
+//method injunction
+    public function getAllUsers(DBUserRepository $users){
+      return $this->users->all();
+    }
+//other methods and code continue
+}
+
+
+
+//code 9.11
+/**
+ * Some comments about class Baz
+ */
+
+class Baz {};
+
+/**
+ * Some comments about class Bax
+ */
+class Bax
+{
+  public $baz;
+  function __construct(Baz $baz)
+  {
+    $this->baz = $baz;
+  }
+}
+
+ /**
+  * Some comments about class Bar
+  */
+ class Bar
+ {
+   public $bax;
+   function __construct(Bax $bax)
+   {
+     $this->bax = $bax;
+   }
+ }
+ Route::get('bar', function (Bar $bar) {
+     dd($bar);
+ });
+
+
+
+
+//code 9.12
+Route::get('bar', function (Bar $bar) {
+     dd($bar->bax);
+ });
+
+
+
+//code 9.13
+class Bax implements InterfaceBax {};
+
+ class Bar
+ {
+   public $bax;
+
+   function __construct(InterfaceBax $bax)
+   {
+     $this->bax = $bax;
+   }
+ }
+ Route::get('bar', function (Bar $bar) {
+     dd($bar);
+ });
+
+
+
+//code 9.14
+ interface InterfaceBax
+ {
+   // code...
+ }
+
+class Bax implements InterfaceBax
+{
+
+}
+ class Bar
+ {
+   public $bax;
+
+   function __construct(InterfaceBax $bax)
+   {
+     $this->bax = $bax;
+   }
+ }
+
+App::bind('Bar', function(){
+  return new Bar(new Bax);
+});
+
+ Route::get('bar', function (Bar $bar) {
+     dd($bar);
+ });
+
+
+
+//code 9.15
+ interface InterfaceBax
+ {
+   // code...
+ }
+
+class Bax implements InterfaceBax
+{
+
+}
+ class Bar
+ {
+   public $bax;
+
+   function __construct(InterfaceBax $bax)
+   {
+     $this->bax = $bax;
+   }
+ }
+
+App::bind('InterfaceBax', 'Bax');
+
+ Route::get('bar', function (Bar $bar) {
+     dd($bar);
+ });
+
+
+
+//code 9.16
+ interface InterfaceBax
+ {
+   // code...
+ }
+
+class Bax implements InterfaceBax
+{
+
+}
+ class Bar
+ {
+   public $bax;
+
+   function __construct(InterfaceBax $bax)
+   {
+     $this->bax = $bax;
+   }
+ }
+
+App::bind('InterfaceBax', 'Bax');
+
+ Route::get('bar', function () {
+     $bar = App::make('InterfaceBax');
+     dd($bar);
+ });
+
+
+
+//code 9.17
+ Route::get('bar', function () {
+     $bar = app()->make('InterfaceBax');
+     dd($bar);
+ });
+
+
+//code 9.18
+Route::get('bar', function () {
+     $bar = app()['InterfaceBax'];
+     dd($bar);
+ });
+
+
+

@@ -1,0 +1,860 @@
+//code 6.1
+    Route::post('user/profile', function () {
+        // Validate the request...
+        return back()->withInput();
+    });
+
+
+//code 6.2
+//app/Http//Controller/ArticleController.php
+    public function index()
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+        $articles = Article::orderBy('published_at', 'asc')->get();
+        return view('articles.index', compact('articles'));
+      }
+      else {
+        return redirect('home');
+      }
+    }
+
+
+
+
+
+//code 6.3
+return redirect()->route('login');
+
+
+
+
+
+//code 6.4
+// For a route with the following URI: article/{id}
+return redirect()->route('article', ['id' => 1]);
+
+
+
+//code 6.5
+return redirect()->action('ArticleController@index');
+
+
+
+//code 6.6
+return redirect()->action(
+        'ArticleController@show', ['id' => 1]
+    );
+
+
+
+
+//code 6.7
+    public function update(Request $request, $id)
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+
+          if($file = $request->file('image')){
+
+              $name = $file->getClientOriginalName();
+
+              $post = Article::findOrFail($id);
+              $post->title = $request->input('title');
+              $post->body = $request->input('body');
+              $post->published_at = $request->input('published_at');
+              $post->image = $name;
+              $post->save();
+
+              $file->move('images/upload', $name);
+          }
+          else {
+              // code...
+              $post = Article::findOrFail($id);
+              $post->title = $request->input('title');
+              $post->body = $request->input('body');
+              $post->published_at = $request->input('published_at');
+              $post->save();
+
+          }
+
+          if($post){
+              return redirect('articles')->with('status', 'Article Updated!');
+          }
+        }
+    }
+
+
+
+//code 6.8
+//resources/views/articles/index.blade.php
+    @if (session('status'))
+        <div class="alert alert-success">
+            {{ session('status') }}
+        </div>
+    @endif
+
+
+
+
+//code 6.9
+    public function store(Request $request)
+    {
+        if($file = $request->file('image')){
+         $name = $file->getClientOriginalName();
+         $post = new Article;
+   	  $post->title = $request->input('title');
+  	  $post->body = $request->input('body');
+         $post->published_at = $request->input('date');
+         $post->image = $name;
+
+         $post->save();
+
+  $file->move('images/upload', $name);
+
+   }
+
+         if($post){
+             return redirect('articles')->with('status', 'Article Created!');
+         }
+    }
+
+
+//code 6.10
+  /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+        if(Auth::user()->is_admin == 1){
+
+          if($file = $request->file('image')){
+
+              $name = $file->getClientOriginalName();
+
+              $post = Article::findOrFail($id);
+              $post->title = $request->input('title');
+              $post->body = $request->input('body');
+              $post->published_at = $request->input('published_at');
+              $post->image = $name;
+              $post->save();
+
+              $file->move('images/upload', $name);
+   }
+   else {
+     // code...
+     $post = Article::findOrFail($id);
+     $post->title = $request->input('title');
+     $post->body = $request->input('body');
+     $post->published_at = $request->input('published_at');
+     $post->save();
+
+  }
+      if($post){
+             return redirect('articles')->with('status', 'Article Updated!');
+         }
+    }
+    }
+
+
+
+
+//code 6.11
+Route::get('/', function () {
+    return [1, 2, 3];
+});
+
+
+
+//code 6.12
+Route::get('post/create', 'ArticlePostController@create');
+Route::post('post', 'ArticleController@store');
+
+
+//code 6.13
+ /**
+     * Store a new post content.
+     *
+     * @param  Request  $request
+     * @return Response
+     */
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'title' => 'required|unique:posts|max:255',
+            'body' => 'required',
+        ]);
+        // The content is valid...
+    }
+
+
+
+
+
+
+//code 6.14
+ <?php
+
+    namespace App\Http\Controllers;
+
+    use Illuminate\Http\Request;
+    use App\Http\Controllers\Controller;
+
+    class PostController extends Controller
+    {
+        /**
+         * Show the form to create a new blog post.
+         *
+         * @return Response
+         */
+        public function create()
+        {
+            return view('post.create');
+        }
+
+        /**
+         * Store a new blog post.
+         *
+         * @param  Request  $request
+         * @return Response
+         */
+        public function store(Request $request)
+        {
+            $validatedData = $request->validate([
+            'title' => 'bail|required|unique:posts|max:255',
+            'body' => 'required',
+        ]);
+        // The content is valid...
+        }
+    }
+
+
+
+//code 6.15
+<!-- /resources/views/post/create.blade.php -->
+
+    <h1>Create Post</h1>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+
+
+
+
+//code 6.16
+$request->validate([
+        'title' => 'bail|required|unique:posts|max:255',
+        'body' => 'required',
+        'publish_at' => 'nullable|date',
+    ]);
+
+
+
+
+//code 6.17
+//app/HTTP/Controllers/ArticleController.php
+    public function store(Request $request)
+    {
+        //
+        $validatedData = $request->validate([
+            'title' => 'required|unique:posts|max:255',
+            'body' => 'required',
+        ]);
+        if($file = $request->file('image')){
+
+        $name = $file->getClientOriginalName();
+
+        $post = new Article;
+        $post->title = $request->input('title');
+        $post->body = $request->input('body');
+        $post->published_at = $request->input('date');
+        $post->image = $name;
+
+        $post->save();
+
+        $file->move('images/upload', $name);
+
+   }
+
+         if($post){
+             return redirect('articles');
+         }
+    }
+
+
+
+//code 6.18
+//app/HTTP/Controllers/ArticleController.php
+class ArticleController extends Controller
+    {
+        public function store(Request $request)
+        {
+            $validator = Validator::make($request->all(), [
+                'title' => 'required|unique:posts|max:255',
+                'body' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect('post/create')
+                            ->withErrors($validator)
+                            ->withInput();
+            }
+            //code...
+        }
+    }
+
+
+
+
+
+
+
+//code 6.19
+<form method="POST" action="{{ route('login') }}">
+@csrf
+Another one we can use with 'laravelcollective/html' package: 
+//code
+{!! Form::open(['url' => 'foo/bar']) !!}
+    //
+{!! Form::close() !!}
+
+
+
+//code 6.20
+composer require "laravelcollective/html":"^5.4.0"
+
+
+//code 6.21
+  'providers' => [
+    // ...
+    Collective\Html\HtmlServiceProvider::class,
+    // ...
+  ],
+
+
+
+//code 6.22
+  'aliases' => [
+    // ...
+      'Form' => Collective\Html\FormFacade::class,
+      'Html' => Collective\Html\HtmlFacade::class,
+    // ...
+  ],
+
+
+
+//code 6.23
+//resources/views/articles/create.blade.php
+      <div class="card-header">
+
+{!! Form::open(['url' => 'articles', 'files' => true]) !!}
+<div class="form-group">
+{!! Form::label('title', 'Title', ['class' => 'awesome']) !!}
+{!! Form::text('title', 'Give a good title', ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+
+{!! Form::label('body', 'Body', ['class' => 'awesome']) !!}
+{!! Form::textarea('body', 'Write your article Content', ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::label('published_at', 'Published On', ['class' => 'awesome']) !!}
+{!! Form::input('date', 'published_at', null, ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::file('image') !!}
+</div>
+<div class="form-group">
+{!! Form::submit('Add Article', ['class' => 'btn btn-primary form-control']) !!}
+</div>
+{!! Form::close() !!}
+</div>
+
+
+
+
+
+
+//code 6.24
+{!! Form::open(array('route' => 'route.name')) !!}
+{!! Form::open(array('action' => 'Controller@method')) !!}
+
+
+
+
+//code 6.25
+//app/HTTP/Controllers/ArticleController.php
+ 
+    public function create()
+    {
+        if(Auth::user()->is_admin == 1){
+            return view('articles.create');
+        }
+        else {
+          return redirect('home');
+        }
+    }
+    public function store(Request $request)
+    {
+        if($file = $request->file('image')){
+        $name = $file->getClientOriginalName();
+  $post = new Article;
+  $post->title = $request->input('title');
+  $post->body = $request->input('body');
+  $post->published_at = $request->input('date');
+  $post->image = $name;
+  $post->save();
+  $file->move('images/upload', $name);
+   }
+
+
+
+
+
+//code 6.26
+//resources/views/articles/edit.blade.php
+<div class="card-header">
+{!! Form::model($article, ['route' => ['articles.update', $article->id], 'method' => 'PUT', 'files' => true]) !!}
+
+<div class="form-group">
+{!! Form::label('title', 'Title', ['class' => 'awesome']) !!}
+{!! Form::text('title', "$article->title", ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::label('body', 'Body', ['class' => 'awesome']) !!}
+{!! Form::textarea('body', "$article->body", ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::label('published_at', 'Published On', ['class' => 'awesome']) !!}
+{!! Form::input('date', 'published_at', null, ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::file('image') !!}
+</div>
+<div class="form-group">
+{!! Form::submit('Edit Article', ['class' => 'btn btn-primary form-control']) !!}
+</div>
+{!! Form::close() !!}
+</div>
+
+
+
+//code 6.27
+//app/HTTP/Controllers/ArticleController.php
+    public function edit($id)
+    {
+        if(Auth::user()->is_admin == 1){
+        $article = Article::findOrFail($id);
+        return view('articles.edit', compact('article'));
+      }
+      else {
+        return redirect('home');
+      }
+    }
+    public function update(Request $request, $id)
+    {
+        if(Auth::user()->is_admin == 1){
+            
+          if($file = $request->file('image')){
+              
+              $name = $file->getClientOriginalName();
+              
+              $post = Article::findOrFail($id);
+  $post->title = $request->input('title');
+  $post->body = $request->input('body');  
+  $post->published_at = $request->input('published_at'); 
+  $post->image = $name;
+  $post->save();             
+                  $file->move('images/upload', $name);
+   }
+   else {
+     $post = Article::findOrFail($id);
+  $post->title = $request->input('title');
+  $post->body = $request->input('body');  
+  $post->published_at = $request->input('published_at'); 
+  $post->save();   
+  }
+      if($post){
+             return redirect('articles');
+         }
+    }
+    }
+
+
+
+//code 6.28
+{!! Form::password('password') !!}
+The same way, we could generate other inputs this way:
+{!! Form::email($name, $value = null, $attributes = array()) !!}
+{!! Form::file($name, $attributes = array()) !!}
+For Checkboxes and Radio Buttons we can go this way:
+{!! Form::checkbox('name', 'value') !!}
+{!! Form::radio('name', 'value') !!}
+We could generate a Checkbox or Radio Input that is "Checked". 
+{!! Form::checkbox('name', 'value', true) !!}
+{!! Form::radio('name', 'value', true) !!}
+For the Drop-Down Lists we generally generate it this way:
+{!! Form::select('size', array('L' => 'Large', 'S' => 'Small')) !!}
+We can generate a Drop-Down list with selected default:
+{!! Form::select('size', array('L' => 'Large', 'S' => 'Small'), 'S') !!}
+For generating a Submit Button the process is quite simple:
+echo Form::submit('Click Me!');
+
+
+
+
+//code 6.29	
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+  <div class="card-header">Recent Tasks</div>
+
+    <div class="row justify-content-left">
+        <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                Categories
+                <p></p>
+                Posts
+                <p></p>
+                Add Users
+                <p></p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+              <div class="card-body">
+                <form enctype="multipart/form-data" method="post" action="{{ route('articlel.store') }}">
+                          {{ csrf_field() }}
+                          <div class="form-group">
+                             <label for="post-name">Title
+                               <span class="required">*</span>
+                             </label>
+<input   placeholder="Enter title" id="post-title" required name="title" spellcheck="false" class="form-control"/>
+                              </div>
+                                 @if($categories == null)
+<input class="form-control" type="hidden" required name="category_id" value="{{ $category_id }}"/>
+                          </div>
+                                 @endif
+                                      @if($categories != null)
+                                      <div class="form-group">
+                                          <label for="category-content">Select Category</label>
+                                          <span class="required">*</span>
+                                          <select name="category_id" class="form-control" >
+                                          @foreach($categories as $category)
+                                                  <option value="{{$category->id}}">
+                                                    {{$category->name}}
+                                                  </option>
+                                                @endforeach
+                                          </select>
+                                      </div>
+                                      @endif
+                            <div class="form-group">
+                                            <label for="project-content">News Content</label>
+                                            <span class="required">*</span>
+                                            <textarea placeholder="Enter body"
+                                                      style="resize: vertical"
+                                                      id="post-body"
+                                                      required
+                                                      name="body"
+                                                      rows="10" spellcheck="false"
+                                                      class="form-control autosize-target text-left">
+                                             </textarea>
+                                        </div>
+                                        @if($writers == null)
+                                        <input class="form-control" type="hidden" required name="writer_id"
+                                        value="{{ $writer_id }}"/>
+                                        </div>
+                                        @endif
+                                             @if($writers != null)
+                                             <div class="form-group">
+                                                 <label for="category-content">Select Writer</label>
+                                                 <span class="required">*</span>
+
+                                                 <select name="writer_id" class="form-control" >
+                                                 @foreach($writers as $writer)
+                                                         <option value="{{ $writer->id }}">
+                                                           {{ $writer->name }}
+                                                         </option>
+                                                       @endforeach
+                                                 </select>
+                                             </div>
+                                             @endif
+
+                                        <div class="form-group">
+                                           <label class="form-group">
+                                               <input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
+                                               <input name="image" type="file">
+                                              <span class="custom-file-control">Upload Image</span>
+                                            </label>
+                                       </div>
+                                       <div class="form-group">
+                                          <label for="post-name">Tag
+                                            <span class="required">*</span>
+                                          </label>
+             <input   placeholder="Enter title" id="post-title" required name="tag" spellcheck="false" class="form-control"/>
+                                           </div>
+                              <div class="form-group">
+                                <input type="submit" class="btn btn-primary"
+                                       value="Submit"/>
+                            </div>
+         </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+
+
+
+
+//code 6.30
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        if( Auth::user()->id == 1 ){
+            $categories = Category::where('user_id', Auth::user()->id)->get();
+            $writers = Writer::where('user_id', Auth::user()->id)->get();
+            return view('articlelead.create', compact('categories', 'writers'));
+        }
+        return view('auth.login');
+
+
+    }
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request){
+        if(Auth::user()->id == 1){
+          if($file = $request->file('image')){
+              $name = $file->getClientOriginalName();
+            //using the Article model to create posts         
+            $post = ArticleLead::create([
+             'title' => $request->input('title'),
+             'body' => $request->input('body'),
+             'user_id' => Auth::user()->id,
+             'category_id' => $request->input('category_id'),
+             'writer_id' => $request->input('writer_id'),
+             'tag' => $request->input('tag'),
+             'image' => $name
+         ]);
+         $file->move('images/articlesleadnews', $name);
+   }
+         if($post){
+             return redirect()->route('article.show', ['post'=> $post->id])
+             ->with('success', 'post created successfully');
+         }
+     }
+     return back()->withInput()->with('errors', 'Error creating new post');
+}
+
+
+
+//code 6.31
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+  <div class="card-header">Recent Tasks</div>
+
+    <div class="row justify-content-left">
+        <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                Categories
+                <p></p>
+                Posts
+                <p></p>
+                Add Users
+                <p></p>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+              <div class="card-body">
+                <form enctype="multipart/form-data" method="post"
+                action="{{ route('article.update', [$lead->id]) }}">
+                {{ csrf_field() }}
+
+                <input type="hidden" name="_method" value="put">
+                          <div class="form-group">
+                             <label for="post-name">Title
+                               <span class="required">*</span>
+                             </label>
+<input   placeholder="Enter title" id="post-title" value="{{ $lead->title }}"
+required name="title" spellcheck="false" class="form-control"/>
+                              </div>
+                                 @if($categories == null)
+<input class="form-control" type="hidden" required name="category_id" value="{{ $category_id }}"/>
+                          </div>
+                                 @endif
+
+                                      @if($categories != null)
+                                      <div class="form-group">
+                                          <label for="category-content">Select Category</label>
+                                          <span class="required">*</span>
+
+                                          <select name="category_id" class="form-control" >
+
+                                          @foreach($categories as $category)
+                                                  <option value="{{$category->id}}">
+                                                    {{$category->name}}
+                                                  </option>
+                                                @endforeach
+                                          </select>
+                                      </div>
+                                      @endif
+
+                            <div class="form-group">
+                                            <label for="project-content">News Content</label>
+                                            <span class="required">*</span>
+                                            <textarea placeholder="Enter body"
+                                                      style="resize: vertical"
+                                                      id="post-body"
+                                                      required
+                                                      name="body"
+                                                      rows="10" spellcheck="false"
+                                                      class="form-control autosize-target text-left">
+                                                      {{ $lead->body }}
+                                             </textarea>
+                                        </div>
+
+                                        @if($writers == null)
+                                        <input class="form-control" type="hidden" required name="writer_id"
+                                        value="{{ $writer_id }}"/>
+                                        </div>
+                                        @endif
+
+                                             @if($writers != null)
+                                             <div class="form-group">
+                                                 <label for="category-content">Select Writer</label>
+                                                 <span class="required">*</span>
+
+                                                 <select name="writer_id" class="form-control" >
+
+                                                 @foreach($writers as $writer)
+                                                         <option value="{{ $writer->id }}">
+                                                           {{ $writer->name }}
+                                                         </option>
+                                                       @endforeach
+                                                 </select>
+                                             </div>
+                                             @endif
+
+                                        <div class="form-group">
+                                           <label class="form-group">
+                                               <input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
+                                               <input name="image" type="file">
+                                              <span class="custom-file-control">Upload Image</span>
+                                            </label>
+                                       </div>
+
+                                       <div class="form-group">
+                                          <label for="post-name">Tag
+                                            <span class="required">*</span>
+                                          </label>
+             <input   placeholder="Enter Tags" id="post-title" value="{{ $lead->tag }}"
+             required name="tag" spellcheck="false" class="form-control"/>
+                                           </div>
+
+                              <div class="form-group">
+                                <input type="submit" class="btn btn-primary"
+                                       value="Submit"/>
+                            </div>
+         </form>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+@endsection
+
+
+
+//code 6.32
+<form enctype="multipart/form-data" method="post"
+                action="{{ route('article.update', [$lead->id]) }}">
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="put">
+
+
+
+
+
+
+
+
+//code 6.33
+$ php artisan make:request StoreArticle
+
+
+
+
+
+//code 6.34
+    public function rules()
+    {
+        return [
+            'title' => 'required|unique:posts|max:255',
+            'body' => 'required',
+        ];
+
+public function authorize()
+    {
+        return true;
+    }
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'title' => 'required|unique:users|max:255',
+            'body' => 'required',
+        ];
+    }
+    public function messages()
+    {
+        return [
+            'title.required' => 'Title is required!',
+            'body.required' => 'Content is required!',
+        ];
+    }
+
+
+
+
+

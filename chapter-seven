@@ -1,0 +1,204 @@
+//code 7.1
+$ php artisan list
+
+
+//code 7.2
+$ php artisan help migrate
+
+
+
+
+//code 7.3
+Description:
+  Run the database migrations
+
+Usage:
+  migrate [options]
+
+Options:
+      --database[=DATABASE]  The database connection to use
+      --force                Force the operation to run when in production
+      --path[=PATH]          The path to the migrations files to be executed
+      --realpath             Indicate any provided migration file paths are pre-resolved absolute paths
+      --pretend              Dump the SQL queries that would be run
+      --seed                 Indicates if the seed task should be re-run
+      --step                 Force the migrations to be run so they can be rolled back individually
+  -h, --help                 Display this help message
+  -q, --quiet                Do not output any message
+  -V, --version              Display this application version
+      --ansi                 Force ANSI output
+      --no-ansi              Disable ANSI output
+  -n, --no-interaction       Do not ask any interactive question
+      --env[=ENV]            The environment the command should run under
+  -v|vv|vvv, --verbose       Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
+
+
+
+
+
+//code 7.4
+$ php artisan migrate -V
+
+
+
+
+//code 7.5
+composer create-project --prefer-dist laravel/laravel  laravelstarttofinish
+
+
+//code 7.6
+composer create-project --prefer-dist laravel/laravel laravelstarttofinish "5.8.*"
+
+
+
+
+//code 7.7
+php artisan make:auth
+
+
+// code 7.8
+php artisan migrate
+
+
+//code 7.9
+// it creates model and table simultaneously
+php artisan make:model Profile -m
+
+
+//code 7.10
+php artisan migrate:rollback
+
+
+//code 7.11
+php artisan make:controller ProfileController --resource
+
+
+//code 7.12
+php artisan make:controller ProfileController --resource –model=Profile
+
+
+// code 7.14
+php artisan make:migration create_article_tag_table --create=article_tag
+
+
+//code 7.15
+php artisan db:seed
+
+
+//code 7.16
+// to update seeds
+php artisan migrate:refresh --seed
+
+
+
+//code 7.17
+php artisan serve
+
+
+
+// code 7.18
+php artisan tinker
+
+
+//code 7.19
+$ php artisan tinker
+
+
+//code 7.20
+$list = new Listtodo;
+$list->name = 'First Job';
+$list->description = 'Go to market';
+$list->save();
+
+
+//code 7.21
+$list = Listtodo::create(
+array('name' => 'First Job',
+'description' => 'Go to Market')
+);
+
+
+//code 7.22
+echo Listtodo::all()->count();
+
+
+//code 7.23
+$lists = Listtodo::select('name', 'description')->first();
+
+
+//7.24
+$lists = Listtodo::orderBy('name')->get();
+
+
+//code 7.25
+$lists = Listtodo::orderBy('name', 'DESC')->get();
+
+//code 7.26
+$lists = Listtodo::where('isComplete', '=', 1)->get();
+
+
+//code 7.27
+$lists = Listtodo::take(5)->orderBy('created_at', 'desc')->get();
+
+
+//code 7.28
+lists = Listtodo::take(5)->skip(5)->orderBy('created_at', 'desc')->get();
+
+
+//code 7.29
+$list = Listtodo::all()->random(1);
+$list = Listtodo::orderBy(DB::raw('RAND()'))->first();
+
+
+//code 7.30
+$list = Listtodo::find(1);
+$list->name = 'Going to market and buying fish';
+$list->save();
+
+
+//code 7.31
+$list = Listtodo::updateOrCreate(
+array('name' => 'Going to market and buying fish'),
+
+
+//code 7.32
+$list = Listtodo::find(2);
+$list->delete();
+Listtodo::destroy(2);
+
+
+//code 7.33
+$lists = DB::table('liststodos')->get();
+foreach ($lists as $list) {
+echo $list->name;
+}
+
+
+//code 7.34
+$list = DB::table('liststodos')->find(6);
+
+
+
+//code 7.35
+$lists = DB::table('liststodos')->select('name')->get();
+
+
+
+//code 7.36
+$lists = DB::select('SELECT * from todolists');
+
+
+//code 7.37
+DB::insert('insert into todolists (name, description) values (?, ?)',
+array('Second job', 'Finishing the last chapter');
+
+
+//code 7.38
+DB::delete('delete from todolists where completed = 1');
+
+
+//code 7.39
+$lists = DB::statement('drop table todolists');
+
+
+

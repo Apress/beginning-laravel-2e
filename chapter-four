@@ -1,0 +1,827 @@
+//code 4.1
+//app/HTTP/Controllers/TaskController.php
+    public function show($id)
+    {
+        $task = Task::findOrFail($id);
+        return view('tasks.show', compact('task'));
+    }
+
+
+---------
+
+
+//code 4.2
+//resources/views/tasks/edit.blade.php
+<div class="card-body">
+{!! Form::model($task, ['route' => ['tasks.update', $task->id], 'method' => 'PUT']) !!}
+
+<div class="form-group">
+{!! Form::label('title', 'Title', ['class' => 'awesome']) !!}
+{!! Form::text('title', $task->title, ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::label('body', 'Body', ['class' => 'awesome']) !!}
+{!! Form::textarea('body', $task->body, ['class' => 'form-control']) !!}
+</div>
+<div class="form-group">
+{!! Form::submit('Edit Task', ['class' => 'btn btn-primary form-control']) !!}
+</div>
+{!! Form::close() !!}
+</div>
+
+
+---------------
+
+//code 4.3
+//app/HTTP/Controllers/TaskController.php
+    public function edit($id)
+    {
+      if(Auth::user()->is_admin == 1){
+        $task = Task::findOrFail($id);
+        return view('tasks.edit', compact('task'));
+      }
+      else {
+        return redirect('home');
+      }
+    }
+
+
+---------------
+
+//code 4.4
+//app/HTTP/Controllers/TaskController.php
+    public function edit(Task $task)
+    {
+      if(Auth::user()->is_admin == 1){
+        return view('tasks.edit', compact('task'));
+      }
+      else {
+        return redirect('home');
+      }
+    }
+
+
+---------------
+
+
+//code 4.5
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+
+----------------
+
+// code 4.6
+//  database/migrations/create_password_resets_table.php
+public function up()
+    {
+        Schema::create('password_resets', function (Blueprint $table) {
+            $table->string('email')->index();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+    }
+public function down()
+    {
+        Schema::dropIfExists('password_resets');
+    }
+
+
+--------------
+
+// code 4.7
+$ php artisan make:model Profile -m
+Model created successfully.
+Created Migration: 2018_09_16_235301_create_profiles_table
+
+
+-------------
+
+// code 4.8
+//profiles table comes up by default
+
+public function up()
+    {
+        Schema::create('profiles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->timestamps();
+        });
+    }
+
+
+------------
+
+// code 4.9
+public function up()
+    {
+        Schema::create('profiles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id');
+            $table->string('city', 64);
+            $table->text('about');
+            $table->timestamps();
+        });
+    }
+
+
+--------------
+
+// code 4.10
+$ php artisan make:model Profile -m
+Model created successfully.
+Created Migration: 2018_09_17_233619_create_profiles_table
+$ php artisan make:model Tag -m
+Model created successfully.
+Created Migration: 2018_09_18_013602_create_tags_table
+$ php artisan make:model Article -m
+Model created successfully.
+Created Migration: 2018_09_18_013613_create_articles_table
+$ php artisan make:model Comment -m
+Model created successfully.
+Created Migration: 2018_09_18_013629_create_comments_table
+
+$ php artisan make:migration create_article_tag_table --create=article_tag
+Created Migration: 2018_09_17_094743_create_article_tag_table
+
+
+----------------
+
+// code 4.11
+// app/User.php
+public function profile() {
+        
+        return $this->hasOne('App\Profile');
+        
+    }
+
+
+------------
+
+
+// code 4.12
+// app/Profile.php
+public function user() {
+
+        return $this->belongsTo('App\User');
+    }
+
+
+
+
+--------------
+
+// code 4.13
+// tags table
+public function up()
+    {
+        Schema::create('tags', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('tag');
+            $table->timestamps();
+        });
+    }
+
+
+-------------
+
+//Tag.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Tag extends Model
+{
+    //
+    protected $fillable = [
+        'tag'
+    ];
+    
+    public function articles() {
+        
+        return $this->belongsToMany('App\Articles');
+        
+    }
+}
+
+
+----------------
+
+// code 4.14
+// articles table
+public function up()
+    {
+        Schema::create('articles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id');
+            $table->string('title');
+            $table->text('body');
+            $table->timestamps();
+        });
+    }
+
+
+---------------
+
+//Article.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    //
+    protected $fillable = [
+        'user_id', 'title', 'body',
+    ];
+
+    public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+    /**
+     * Get the tags for the article
+    */
+
+   public function tags() {
+       return $this->belongsToMany('App\Tag');
+   }
+
+   /**
+   * Get all of the profiles' comments.
+   */
+   public function comments(){
+     return $this->morphMany('App\Comment', 'commentable');
+   }
+}
+
+
+---------------
+
+// code 4.15
+// article_tag table
+public function up()
+    {
+        Schema::create('article_tag', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('article_id');
+            $table->integer('tag_id');
+            $table->timestamps();            
+        });
+    }
+
+
+---------------
+
+// app/Role.php
+<?php
+namespace App;
+use Illuminate\Database\Eloquent\Model;
+class Role extends Model
+{
+    protected $fillable = [
+      'name'
+  ];
+  public function user() {
+      return $this->belongsTo('App\User');
+  }
+  public function users() {
+      return $this->belongsToMany('App\User');
+  }
+}
+
+------------------
+
+//app.User.php
+public function role() {
+        return $this->belongsTo('App\Role');
+    }
+    public function roles() {
+        return $this->belongsToMany('App\Role');        
+    }
+
+
+----------------
+
+// database/migrations/roles table
+public function up()
+    {
+        Schema::create('roles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+
+
+-------------
+
+// database/migrations/roles table
+public function up()
+    {
+        Schema::create('role_user', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('role_id');
+            $table->integer('user_id');
+            $table->timestamps();
+        });
+    }
+
+
+--------------
+
+// code 4.16
+$ php artisan migrate
+Migrating: 2018_09_17_233619_create_profiles_table
+Migrated:  2018_09_17_233619_create_profiles_table
+Migrating: 2018_09_18_013602_create_tags_table
+Migrated:  2018_09_18_013602_create_tags_table
+Migrating: 2018_09_18_013613_create_articles_table
+Migrated:  2018_09_18_013613_create_articles_table
+Migrating: 2018_09_18_013629_create_comments_table
+Migrated:  2018_09_18_013629_create_comments_table
+Migrating: 2018_09_18_013956_create_article_tag_table
+Migrated:  2018_09_18_013956_create_article_tag_table
+…
+the list is incomplete
+
+-----------------
+
+// code 4.17
+//  database/factory/UserFactory.php
+$factory->define(App\User::class, function (Faker $faker) {
+    return [
+        'name' => $faker->name,
+        'email' => $faker->unique()->safeEmail,
+        'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
+        'remember_token' => str_random(10),
+    ];
+});
+
+$factory->define(App\Article::class, function (Faker $faker) {
+    return [
+        'user_id' => App\User::all()->random()->id,
+        'title' => $faker->sentence,
+        'body' => $faker->paragraph(random_int(3, 5))        
+    ];
+});
+
+$factory->define(App\Profile::class, function (Faker $faker) {
+    return [
+        'user_id' => App\User::all()->random()->id,
+        'city' => $faker->city,
+        'about' => $faker->paragraph(random_int(3, 5))        
+    ];
+});
+
+$factory->define(App\Tag::class, function (Faker $faker) {
+    return [
+        'tag' => $faker->word       
+    ];
+});
+$factory->define(App\Role::class, function (Faker $faker) {
+    return [
+        'name' => $faker->word
+    ];
+});
+
+
+-------------------
+
+// code 4.18
+// database/seeds/DatabaseSeeder.php
+public function run()
+    {
+        factory(App\User::class, 10)->create()->each(function($user){
+            $user->profile()->save(factory(App\Profile::class)->make());
+        });
+        
+        factory(App\Tag::class, 20)->create();
+        
+        factory(App\Article::class, 50)->create()->each(function($article){
+          $ids = range(1, 50);
+          shuffle($ids);
+          $sliced = array_slice($ids, 1, 20);
+          $article->tags()->attach($sliced);
+        });
+        
+        factory(App\Role::class, 3)->create()->each(function($role){
+          $ids = range(1, 5);
+          shuffle($ids);
+          $sliced = array_slice($ids, 1, 20);
+          $role->users()->attach($sliced);
+        });
+        
+    }
+
+
+------------------
+
+// code 4.19
+$ php artisan migrate:refresh –seed
+
+
+----------------
+
+// code 4.20
+mysql> use laravelmodelrelations
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++---------------------------------+
+| Tables_in_laravelmodelrelations |
++---------------------------------+
+|  article_tag                     |
+| articles                        |
+| comments                        |
+| migrations                      |
+| password_resets                 |
+| profiles                        |
+| role_user                       |
+| roles                           |
+| tags                            |
+| users                           |
++---------------------------------+
+10 rows in set (0.00 sec)
+
+mysql> select * from users;
+
+--------------------
+
+// code 4.21
+//  routes/web.php
+use App\Article;
+use App\Tag;
+Route::get('/', function () {
+    $articles = Article::all();
+    $tags = Tag::all();
+    return view('welcome', ['articles' => $articles, 'tags' => $tags]);
+});
+
+
+----------------
+
+// code 4.22
+// resources/views/ welcome.blade.php
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 blog-main col-lg-8 blog-main col-sm-8 blog-main">
+          <div class="blog-post">             
+    <ul class="list-group">             
+         @foreach($articles as $article)
+         <li class="list-group-item">
+             <h2 class="blog-post-title">
+                 <li class="list-group-item"><a href="/articles/{{ $article->id }}">{{ $article->title }}</a>                              
+             </h2>                 
+             Written by <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+         </li>                 
+         @endforeach
+    </ul>
+            </div>
+          <nav class="blog-pagination">
+            <a class="btn btn-outline-primary" href="#">Older</a>
+            <a class="btn btn-outline-secondary disabled" href="#">Newer</a>
+          </nav>
+              
+        </div>
+        <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h4 class="font-italic">Tags Cloud</h4>
+            @foreach($tags as $tag)              
+            <font class="font-italic" color="gray"> {{ $tag->tag }}...
+            @endforeach
+            
+          </div>          
+        </aside>
+    </div>
+</div>
+@endsection
+
+
+-----------------------
+
+// code 4.23
+// app/Article.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    protected $fillable = [
+        'user_id', 'title', 'body',
+    ];
+    
+    public function user() {
+        return $this->belongsTo('App\User');
+    }
+    
+    public function users() {
+        return $this->belongsToMany('App\User');
+    }
+    
+    public function tags() {        
+        return $this->belongsToMany('App\Tag');
+    }
+}
+
+
+------------------
+
+// code 4.24
+// app/Profile.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Profile extends Model
+{
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id', 'city', 'about',
+    ];
+    
+    public function user() {        
+        return $this->belongsTo('App\User');        
+    }
+}
+
+
+-----------------
+
+// code 4.25
+// app/Tag.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Tag extends Model
+{
+    //
+    protected $fillable = [
+        'tag'
+    ];
+    
+    public function articles() {
+        
+        return $this->belongsToMany('App\Articles');
+        
+    }
+}
+
+-----------------
+
+// code 4.26
+// app/User.php
+<?php
+
+namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+    
+    public function profile() {        
+        return $this->hasOne('App\Profile');        
+    }
+    
+    public function article() {
+        return $this->hasOne('App\Article');        
+    }
+    
+    public function articles() {
+        return $this->hasMany('App\Article');        
+    }
+}
+
+
+---------------
+
+// code 4.27
+$ php artisan make:controller CommentController --resource --model=Comment
+
+--------------
+
+// code 4.28
+// app/HTTP/Controllers/CommentController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Comment;
+use Illuminate\Http\Request;
+
+class CommentController extends Controller
+{
+    
+    public function index()
+    {
+        
+    }
+    public function create()
+    {
+        //
+    }
+    public function store(Request $request)
+    {
+        //
+    }
+    public function show(Comment $comment)
+    {
+        //
+    }
+    public function edit(Comment $comment)
+    {
+        //
+    }
+    public function update(Request $request, Comment $comment)
+    {
+        //
+    }
+    public function destroy(Comment $comment)
+    {
+        //
+    }
+}
+
+
+-------------------
+
+// code 4.29
+$ php artisan make:controller UserController --resource –model=User
+$ php artisan make:controller ArticleController --resource –model=Article
+$ php artisan make:controller TagController --resource –model=Tag
+
+
+-------------------
+
+// code 4.30
+//  routes/web.php
+Auth::routes();
+Route::get('/home', 'HomeController@index')->name('home');
+
+Route::resource('users', 'UserController');
+Route::resource('profiles', 'ProfileController');
+Route::resource('articles', 'ArticleController');
+Route::resource('comments', 'CommentController');
+Route::get('/users/{id}/articles', 'ArticleController@articles');
+Route::get('/', 'ArticleController@main');
+
+---------------------
+
+// code 4.31
+// app/HTTP/Controllers/ArticleController.php
+    public function index()
+    {
+        $articles = Article::orderBy('created_at','desc')->paginate(4);
+        $users = User::all();
+        $tags = Tag::all();
+        return view('articles.index', compact('articles', 'users', 'tags'));
+    }
+
+
+-----------------
+
+// code 4.32
+// resources/views/articles/index.blade.php
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 blog-main col-lg-6 blog-main col-sm-6 blog-main">
+            <div class="blog-post">
+    <ul class="list-group">
+         @foreach($articles as $article)
+         <li class="list-group-item"><h2 class="blog-post-title">
+                 <li class="list-group-item"><a href="/articles/{{ $article->id }}">{{ $article->title }}</a>
+
+             </h2>
+         </li>
+         @endforeach
+         {{ $articles->render() }}
+    </ul>
+            </div>
+          <nav class="blog-pagination">
+            
+          </nav>
+        </div>
+        <aside class="col-md-3 blog-sidebar">
+          <div class="p-3">
+              <h4 class="font-italic">All Writers</h4>
+            @foreach($users as $user)
+                 <a href="/users/{{ $user->id }}">{{ $user->name }}</a>...
+         @endforeach
+          </div>
+        </aside>
+        <aside class="col-md-3 blog-sidebar">
+          <div class="p-3">
+              <h4 class="font-italic">Tags-Cloud</h4>
+            @foreach($tags as $tag)
+                 <a href="/tags/{{ $tag->id }}">{{ $tag->tag }}</a>...
+         @endforeach
+          </div>
+        </aside>
+    </div>
+</div>
+@endsection
+
+-------------------
+
+// code 4.33
+// app/HTTP/Controllers/ ArticleController.php
+public function main()
+    {
+        $articles = Article::where('user_id', 1)->orderBy('title', 'desc')->take(4)->get();
+        $tags = Tag::all();
+        return view('welcome', ['articles' => $articles, 'tags' => $tags]);
+    }
+
+
+----------------
+
+// code 4.34
+//resources/views/ welcome.blade.php
+<ul class="list-group">        
+         @foreach($articles as $article)
+         <li class="list-group-item">
+             <h2 class="blog-post-title">
+                 <li class="list-group-item"><a href="/articles/{{ $article->id }}">{{ $article->title }}</a>                              
+             </h2>
+         </li>                 
+         @endforeach
+    </ul>
+…
+<aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="blog-post-title">This week we have showcased only the articles
+                  Written by <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+        </h3>
+              <strong>Showing the first four results</strong>
+              <hr class="linenums" color="red">
+              <h4 class="font-italic">Tags Cloud</h4>
+            @foreach($tags as $tag)              
+            <font class="font-italic" color="gray"> {{ $tag->tag }}...
+            @endforeach            
+          </div>          
+        </aside>
+
+
+-------------------
+
+// code 4.35
+// app/Article.php
+public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+
+-----------------
+
+
+
+

@@ -1,0 +1,953 @@
+//code 8.1
+$ php artisan make:middleware CheckRole
+Middleware created successfully.
+
+//code 8.2
+// app/Http/Middleware/CheckRole.php
+<?php
+namespace App\Http\Middleware;
+use Closure;
+class CheckRole
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
+    {
+        return $next($request);
+    }
+}
+
+
+
+//code 8.3
+//‘app/Http/Middleware/CheckRole.php’
+    public function handle($request, Closure $next)
+    {
+      if(auth()->check() && $request->user()->admin == 0){
+        return redirect()->guest('home');
+      }
+      return $next($request);
+    }
+}
+
+
+
+//code 8.4
+//‘routes/web.php’
+Route::group(['middleware' => ['web', 'auth']], function(){
+  Route::get('/adminonly', function () {
+    if(Auth::user()->admin == 0){
+      return view('restrict');
+    }else{
+      $users['users'] = \App\User::all();
+      return view('adminonly', $users);
+    }
+  });
+});
+
+
+//code 8.5
+// resources/views/adminonly.blade.php
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                </div>
+                <div class="panel-body">
+                    @if (session('status'))
+                        <div class="alert alert-success">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+<h1 class="blog-post">THIS IS ADMIN PAGE</h1>
+<h1 class="blog-post">ADMIN CAN ALSO DO</h1>
+<h1 class="blog-post">SOMETHING ELSE HERE</h1>
+<a href="/home">HOME</a>
+<h1 class="blog-post">PLEASE VISIT ABOVE HOME LINK FOR FURTHER EDITING</h1>
+<ul class="list-group">
+     @foreach ($users as $user)
+     <li class="list-group-item"><h2 class="blog-post-title">
+             <a href="/users/{{ $user->id }}">{{ $user->name }}</a>
+         </h2>
+     </li><li><a href="/users/{{ $user->id }}/edit">Edit</a></li>
+     @endforeach
+</ul></div></div></div></div></div>
+@endsection
+
+
+
+//code 8.6
+//‘app/Http/Kernel.php’
+    protected $middleware = [
+        \App\Http\Middleware\CheckForMaintenanceMode::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\TrustProxies::class,
+        \App\Http\Middleware\CheckRole::class
+    ];
+
+
+//code 8.7
+//routes/web.php
+
+Route::get('/', function () {
+    return view('welcome');
+});
+/*
+Route::get('/test', function () {
+        //
+        return view('test');
+})->middleware(CheckRole::class);
+*/
+Route::group(['middleware' => ['web', 'auth']], function(){
+  Route::get('/adminonly', function () {
+    if(Auth::user()->admin == 0){
+      return view('restrict');
+    }else{
+      $users['users'] = \App\User::all();
+      return view('adminonly', $users);
+    }
+  });
+});
+
+Route::get('/admin', function () {
+  if (Gate::allows('admin-only', Auth::user())) {
+        // The current user can view this page
+        return view('admin');
+    }
+    else{
+      return view('restrict');
+    }
+});
+
+Route::get('/mod', function () {
+  if (Gate::allows('mod-only', Auth::user())) {
+        // The current user can view this page
+        return view('mod');
+    }
+    else{
+      return view('restrict');
+    }
+});
+
+Auth::routes();
+
+Route::resource('home', 'HomeController');
+
+Route::resource('users', 'UserController');
+
+Route::resource('companies', 'CompanyController');
+
+Route::resource('companies', 'CompanyController');
+
+Route::resource('projects', 'ProjectController');
+
+Route::resource('roles', 'RoleController');
+Route::resource('tasks', 'TaskController');
+
+Route::resource('comments', 'CommentController');
+
+Route::resource('articles', 'ArticleController');
+Route::get('/users/{id}/articles', 'ArticleController@articles');
+Route::resource('reviews', 'ReviewController');
+Route::get('/users/{id}/reviews', 'ReviewController@reviews');
+
+Route::get('companies/destroy/{id}', ['as' => 'companies.get.destroy',
+        'uses' => 'CompanyController@getDestroy']);
+
+
+
+
+-----------------
+
+
+//code 8.9
+//app/HTTP/Controllers/ArticleController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Article;
+use App\Country;
+use App\User;
+use App\Tag;
+use Illuminate\Http\Request;
+
+class ArticleController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+      $articles = Article::all();
+      //$articles = Article::where('active', 1)->orderBy('title', 'desc')->take(10)->get();
+      $users = User::all();
+      $tags = Tag::all();
+      return view('articles.index', compact('articles', 'users', 'tags'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Article $article)
+    {
+      $tags = Article::find($article->id)->tags;
+      $article = Article::find($article->id);
+      $comments = $article->comments;
+      $user = User::find($article->user_id);
+      $country = Country::where('id', $user->country_id)->get()->first();
+
+      return view('articles.show', compact('tags','article',
+      'country', 'comments', 'user'));
+    }
+
+    /**
+* Display the specified resource.
+*
+* @param  \App\Article  $article
+* @return \Illuminate\Http\Response
+*/
+public function articles($id)
+{
+   $user = User::find($id);
+
+   return view('articles.articles', compact('user'));
+}
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        //
+    }
+}
+
+
+
+-----------------
+
+
+//code 8.10
+//app/Article.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+  protected $fillable = [
+      'user_id', 'title', 'body',
+  ];
+
+  public function user() {
+      return $this->belongsTo('App\User');
+  }
+
+  public function users() {
+      return $this->belongsToMany('App\User');
+  }
+
+  public function tags() {
+      return $this->belongsToMany('App\Tag');
+  }
+
+  /**
+  * Get all of the articles' comments.
+  */
+  public function comments(){
+    return $this->morphMany('App\Comment', 'commentable');
+  }
+}
+
+
+--------------
+
+//code 8.11
+//app/HTTP/Controllers/ ReviewController.php
+    public function show(Review $review)
+    {
+        $tags = Review::find($review->id)->tags;
+        $review = Review::find($review->id);
+        $comments = $review->comments;
+        $user = User::find($review->user_id);
+        $company = Company::find($review->company_id);
+        $country = Country::where('id', $user->country_id)->get()->first();
+
+        return view('reviews.show', compact('tags','review',
+        'country', 'comments', 'user', 'company'));
+    }
+
+
+------------------
+
+//code 8.12
+//app/HTTP/Controllers/HomeController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class HomeController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        return view('home');
+    }
+}
+
+
+
+-----------------
+
+//code 8.13
+<?php
+namespace App\Http\Middleware;
+use Closure;
+use Illuminate\Support\Facades\Auth;
+class RedirectIfAuthenticated
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  string|null  $guard
+     * @return mixed
+     */
+    public function handle($request, Closure $next, $guard = null)
+    {
+        if (Auth::guard($guard)->check()) {
+            //return redirect('/home');
+// we have commented out the default redirection and change it to the new one
+             return redirect('/');
+        }
+        return $next($request);
+    }
+}
+
+
+------------------
+
+//code 8.14
+//resources/views/home.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Dashboard</div>
+
+                <div class="card-body">
+                    @if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+                    You are logged in!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+//code 8.15
+//resources/views/home.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h2 class="blog-post">  Dashboard for Admin </h2>
+                </div>
+                <div class="panel-body">
+                    @if (session('status'))
+                        <div class="alert alert-success">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+                    Hello <li class="btn btn-danger">{{ $user->name }}</li> 
+                    You are logged in!
+                </div>
+                <div class="panel-body">
+                  <h4 class="blog-title">
+                    Now you can view, add, edit or delete
+                    any company, project, and user
+                  </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="pb-3 mb-4 font-italic border-bottom">
+           Add New Companies
+          </h3>
+            <a href="/companies/create" class="btn btn-primary" role="button">Create Companies</a>
+            <h4 class="font-italic"><a href="/companies">View All Companies</a></h4>
+           </div>
+        </aside>
+         <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+          <h3 class="pb-3 mb-4 font-italic border-bottom">
+              Add New Projects
+          </h3>
+            <a href="/projects/create" class="btn btn-primary" role="button">Create Projects</a>
+            <h4 class="font-italic"><a href="/projects">View All Projects</a></h4>
+           </div>
+        </aside>
+        <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="pb-3 mb-4 font-italic border-bottom">
+              Add New Users
+          </h3>
+            <a href="/users/create" class="btn btn-primary" role="button">Create Users</a>
+            <h4 class="font-italic"><a href="/users">View All Users</a></h4>
+          </div>
+        </aside>
+    </div>
+</div>
+@endsection
+
+
+
+//code 8.16
+//resources/views/home.blade.php
+<div class="panel-body">
+                    @if (session('status'))
+                        <div class="alert alert-success">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+                    Hello <li class="btn btn-danger">{{ $user->name }}</li>
+                    @if(Auth::user()->role_id === 1)
+                    <h2 class="blog-post">  Dashboard for Admin </h2>
+                    You are logged in as an Administrator!
+                    <h4 class="blog-title">
+                      Now you can view, add, edit or delete
+                      any company, project, and user
+                    </h4>
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            Companies <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                            <a href="/companies" class="btn btn-primary" role="button">
+                              View All Companies</a>
+                            <a href="/companies/create" class="btn btn-primary" role="button">
+                              Create Companies</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            Projects <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                            <a href="/projects" class="btn btn-primary" role="button">
+                              View All Projects</a>
+                            <a href="/projects/create" class="btn btn-primary" role="button">
+                              Create Projects</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            Users <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                            <a href="/users" class="btn btn-primary" role="button">
+                              View All Users</a>
+                        </div>
+
+
+-------------
+
+
+// code 8.17
+// app/HTTP/Controllers/CompanyController.php
+<?php
+
+namespace App\Http\Controllers;
+use App\User;
+use App\Company;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class CompanyController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        if( Auth::check() ){
+            $companies = Company::where('user_id', Auth::user()->id)->get();
+
+            if(Auth::user()->role_id == 1){
+                return view('companies.index', ['companies'=> $companies]);
+            }
+        }
+        return view('auth.login');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+      if( Auth::check() ){
+        if(Auth::user()->role_id == 1){
+                return view('companies.create');
+        }
+      }
+        return view('auth.login');
+
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        if(Auth::check()){
+            $company = Company::create([
+                'name' => $request->input('name'),
+                'description' => $request->input('description'),
+                'user_id' => Auth::user()->id
+            ]);
+            if($company){
+                return redirect()->route('companies.show', ['company'=> $company->id])
+                        ->with('success' , 'Company created successfully');
+            }
+
+        }
+
+            return back()->withInput()->with('errors', 'Error creating new company');
+    }
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Company  $company
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Company $company)
+    {
+      if( Auth::check() ){
+        if(Auth::user()->role_id == 1){
+            $company = Company::find($company->id);
+            return view('companies.show', ['company' => $company]);
+        }
+      }
+        return view('auth.login');
+    }
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Company  $company
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Company $company)
+    {
+      if( Auth::check() ){
+        if(Auth::user()->role_id == 1){
+        $company = Company::find($company->id);
+        return view('companies.edit', ['company' => $company]);
+      }
+    }
+    }
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Company  $company
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Company $company)
+    {
+        $updateCompany = Company::where('id', $company->id)->update(
+                [
+                    'name'=> $request->input('name'),
+                    'description'=> $request->input('description')
+                ]
+        );
+      if($updateCompany){
+          return redirect()->route('companies.show', ['company'=> $company->id])
+          ->with('success' , 'Company updated successfully');
+      }
+      //redirect
+      return back()->withInput();
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Company  $company
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Company $company)
+    {
+    }
+    public function getDestroy($id)
+    {
+        $company = Company::findOrFail($id);
+        if($company->destroy($id)){
+            return redirect()->route('companies.index')->with('success' , 'Company deleted successfully');
+        }
+    }
+}
+
+
+
+
+
+
+-----------------
+
+
+//code 8.18
+//resources/views/companies/create.blade.php
+@extends('layouts.app')
+
+@section('content')
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 blog-main col-lg-8 blog-main col-sm-8 blog-main">
+          <h3 class="pb-3 mb-4 font-italic border-bottom">
+            All Companies
+          </h3>
+            <div class="blog-post">
+            <h2 class="blog-post-title"></h2>
+             <form method="post" action="{{ route('companies.store') }}">
+             {{ csrf_field() }}
+             <div class="form-group">
+             <label for="company-name">Name<span class="required">*</span></label>
+             <input   placeholder="Enter name"  
+             id="company-name"
+             required
+             name="name"
+             spellcheck="false"
+             class="form-control"
+             />
+             </div>
+             <div class="form-group">
+             <label for="company-content">Description</label>
+             <textarea placeholder="Enter description" 
+             style="resize: vertical" 
+             id="company-content"
+             name="description"
+             rows="10" spellcheck="false"
+             class="form-control autosize-target text-left">
+             </textarea>
+             </div>
+             <div class="form-group">
+             <input type="submit" class="btn btn-primary"
+             value="Submit"/>
+             </div>
+             </form>
+             </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+---------------------
+
+
+//code 8.19
+//app/Providers/AuthServiceProvider.php
+    /**
+     * Register any authentication / authorization services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        Gate::define('admin-only', function ($user) {
+          if($user->admin == 1){
+            return TRUE;
+          }
+          return FALSE;
+
+        });
+    }
+
+
+--------------------
+
+//code 8.20
+//routes/web.php
+Route::get('/admin', function () {
+  if (Gate::allows('admin-only', Auth::user())) {
+        // The current user can view this page
+        return view('admin');
+    }
+    else{
+      return view('restrict');
+    }
+});
+
+
+
+---------------------
+
+
+//code 8.21
+// resource/views/layouts/app.blade.php
+<!-- Right Side Of Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Authentication Links -->
+                        @guest
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                @if (Route::has('register'))
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                @endif
+                            </li>
+                        @else
+                        <li class="nav-item dropdown">
+                          @can('admin-only', Auth::user())
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="/admin">Admin</a>
+                          @endcan
+                        </li>
+                        <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle"
+                                href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }} <span class="caret"></span>
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        {{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
+                    </ul>
+
+
+
+--------------------
+
+
+//code 8.22
+//App/Policies/admin.php
+<?php
+
+namespace App\Policies;
+
+use App\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class admin
+{
+    use HandlesAuthorization;
+
+    /**
+     * Create a new policy instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+    
+    public function admin_only($user)
+    {
+        if($user->admin == 1){
+            return TRUE;
+          }
+          return FALSE;
+    }
+}
+
+
+
+-------------------------
+
+
+//code 8.23
+//App/Policies/mod.php
+<?php
+
+namespace App\Policies;
+
+use App\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class mod
+{
+    use HandlesAuthorization;
+
+    /**
+     * Create a new policy instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+    public function mod_only($user)
+    {
+        if($user->mod == 1){
+            return TRUE;
+          }
+          return FALSE;
+    }
+}
+
+
+-----------------
+
+//code 8.24
+//app/Policies/ AuthServiceProvider.php
+<?php
+
+namespace App\Providers;
+
+use App\Policies\admin;
+use App\Policies\mod;
+use App\User;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+
+class AuthServiceProvider extends ServiceProvider
+{
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array
+     */
+    protected $policies = [
+        'App\Model' => 'App\Policies\ModelPolicy',
+        'App\User' => admin::class,
+        'App\User' => mod::class
+    ];
+
+    /**
+     * Register any authentication / authorization services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        Gate::define('admin-only', 'App\Policies\admin@admin_only');
+        
+        Gate::define('mod-only', 'App\Policies\mod@mod_only');
+    }
+}
+
+
+----------------
+
+

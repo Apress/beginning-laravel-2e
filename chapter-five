@@ -1,0 +1,1197 @@
+//code 5.1
+php artisan make:migration create_tests_table
+
+
+//code 5.2
+php artisan make:migration create_tests_table –create=tests
+php artisan make:migration add_names_to_tests_table –table=tests
+
+//code 5.3
+php artisan make:model Test
+
+//code 5.4
+php artisan make:model Test --migration
+php artisan make:model Test -m
+
+
+//code 5.5
+//app/Article.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    //
+    protected $fillable = [
+        'user_id', 'title', 'body',
+    ];
+
+    public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+    /**
+     * Get the tags for the article
+    */
+
+   public function tags() {
+       return $this->belongsToMany('App\Tag');
+   }
+
+   /**
+   * Get all of the profiles' comments.
+   */
+   public function comments(){
+     return $this->morphMany('App\Comment', 'commentable');
+   }
+}
+
+
+// code 5.7
+// resources/views/welcome.blade.php
+@extends('layouts.app')
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 blog-main col-lg-8 blog-main col-sm-8 blog-main">
+          <div class="blog-post">             
+    <ul class="list-group">        
+         @foreach($articles as $article)
+         <li class="list-group-item">
+             <h2 class="blog-post-title">
+                 <li class="list-group-item"><a href="/articles/{{ $article->id }}">{{ $article->title }}</a>                              
+             </h2>
+         </li>                 
+         @endforeach
+    </ul>
+            </div>
+          <nav class="blog-pagination">
+            <a class="btn btn-outline-primary" href="#">Older</a>
+            <a class="btn btn-outline-secondary disabled" href="#">Newer</a>
+          </nav>
+              
+        </div>
+        <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="blog-post-title">This week we showcase the articles
+                  Written by <p></p>
+                  <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+        </h3>
+              <strong>Showing the first four results</strong><p></p>
+              <italic>His first article is:</italic>
+              <p></p>
+              <a href="/articles/{{ $article->user->article->id }}">
+                  {{ $article->user->find($article->user_id)->article->title }}</a> 
+              <hr class="linenums" color="red">
+              <h4 class="font-italic">Tags Cloud</h4>
+            @foreach($tags as $tag)              
+            <font class="font-italic" color="gray"> {{ $tag->tag }}...
+            @endforeach            
+          </div>          
+        </aside>
+    </div>
+</div>
+@endsection
+
+
+// code 5.7
+// resources/views/welcome.blade.php
+<aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="blog-post-title">This week we showcase the articles
+                  Written by <p></p>
+                  <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+        </h3>
+              <strong>Showing the first four results</strong><p></p>
+              <italic>His first article is:</italic>
+              <p></p>
+              <a href="/articles/{{ $article->user->article->id }}">
+                  {{ $article->user->find($article->user_id)->article->title }}</a> 
+              <hr class="linenums" color="red">
+              <h4 class="font-italic">Tags Cloud</h4>
+            @foreach($tags as $tag)              
+            <font class="font-italic" color="gray"> {{ $tag->tag }}...
+            @endforeach            
+          </div>          
+        </aside>
+
+
+
+//code 5.8
+// routes/web.php
+Auth::routes();
+Route::get('/home', 'HomeController@index')->name('home');
+Route::resources([
+  'users' => 'UserController',
+  'profiles' => 'ProfileController',
+  'articles' => 'ArticleController',
+  'comments' => 'CommentController'
+]);
+Route::get('/users/{id}/articles', 'ArticleController@articles');
+Route::get('/', 'ArticleController@main');
+
+
+// code 5.9
+// app/HTTP/Controllers/ArticleController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Article;
+use App\Country;
+use App\User;
+use App\Tag;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ArticleController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $articles = Article::orderBy('created_at','desc')->paginate(4);
+        //$articles = Article::where('active', 1)->orderBy('title', 'desc')->take(10)->get();
+        $users = User::all();
+        $tags = Tag::all();
+        //$posts = Article::orderBy('created_at','desc')->paginate(3);
+        return view('articles.index', compact('articles', 'users', 'tags'));
+    }
+
+    public function main()
+    {
+        $articles = Article::where('user_id', 1)->orderBy('title', 'desc')->take(4)->get();
+        $tags = Tag::all();
+        return view('welcome', ['articles' => $articles, 'tags' => $tags]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Article $article)
+    {
+        $tags = Article::find($article->id)->tags;
+        $article = Article::find($article->id);
+        $comments = $article->comments;
+        $user = User::find($article->user_id);
+        $country = Country::where('id', $user->country_id)->get()->first();
+
+        return view('articles.show', compact('tags','article',
+        'country', 'comments', 'user'));
+    }
+     /**
+     * Display the specified resource.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function articles($id)
+    {
+        $user = User::find($id);
+
+        return view('articles.articles', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Article $article)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Article $article)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Article $article)
+    {
+        //
+    }
+}
+
+
+// code 5.10
+// app.User.php
+public function articles() {
+        return $this->hasMany('App\Article');        
+    }
+
+
+
+// code 5.11
+// app/Article.php
+public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+
+// code 5.14
+// resources/views/articles.blade.php
+<ul class="list-group">        
+         <div class="panel-heading">All Articles by <a href="/users/{{ $user->id }}">{{ $user->name }}</a> </div>
+                @foreach($user->articles as $article)
+                <li class="list-group-item">
+                    <h2 class="blog-post-title">
+                        <a href="/articles/{{ $article->id }}">{{ $article->title }}</a> 
+                    </h2>
+                </li>
+                @endforeach
+    </ul>
+…
+<div class="p-3">
+              <h3 class="blog-post-title">Know about {{ $article->user->name }}
+              </h3>
+              <hr class="linenums" color="red">
+              <div class="panel panel-default">
+                <div class="panel-heading">{{ $article->user->name }}'s Profile</div>
+                <div class="panel-body">                    
+                    <li class="list-group-item-info">Name : {{ $article->user->name }}</li>
+                    <li class="list-group-item-info">Email: {{ $article->user->email }}</li>
+                    <li class="list-group-item-info">City: {{ $article->user->profile->city }}</li>
+                    <li class="list-group-item-info">About: {{ $article->user->profile->about }}</li>
+                </div>
+            </div>                       
+          </div> 
+
+
+
+
+//code 5.15
+//app/Repositories/ Interfaces/UserRepositoryInterface.php
+<?php namespace RepositoryInterface;
+
+ interface UserRepositoryInterface {     
+     public function all();    
+}
+
+
+// code 5.15
+//app/ Repositories/DBRepositories/DBUserRepository.php
+<?php namespace RepositoryDB;
+
+use RepositoryInterface\UserRepositoryInterface as UserRepositoryInterface;
+
+use App\User;
+use Illuminate\Http\Request;
+
+class DBUserRepository implements UserRepositoryInterface {
+    public function all() {
+        return User::all();
+    }
+}
+
+
+
+//code 5.16
+//composer.json
+"autoload": {
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ],
+        "psr-4": {
+            "App\\": "app/",
+            "RepositoryInterface\\": "app/Repositories/Interfaces/",
+            "RepositoryDB\\": "app/Repositories/DBRepositories/"
+        }
+    },
+
+
+
+// code 5.17
+$ composer dump-autoload
+Cannot create cache directory /home/ss/.composer/cache/repo/https---packagist.org/, or directory is not writable. Proceeding without cache
+Cannot create cache directory /home/ss/.composer/cache/files/, or directory is not writable. Proceeding without cache
+Generating optimized autoload files
+> Illuminate\Foundation\ComposerScripts::postAutoloadDump
+> @php artisan package:discover
+Discovered Package: beyondcode/laravel-dump-server
+Discovered Package: fideloper/proxy
+Discovered Package: laravel/tinker
+Discovered Package: nesbot/carbon
+Discovered Package: nunomaduro/collision
+Package manifest generated successfully.
+
+
+// code 5.18
+//app/HTTP/Controllers/UserController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\User;
+use Illuminate\Http\Request;
+
+use RepositoryDB\DBUserRepository as DBUserRepository;
+//use RepositoryInterface\UserRepositoryInterface as UserRepositoryInterface;
+
+class UserController extends Controller {    
+    public $users;
+    public function __construct(DBUserRepository $users) {        
+        $this->users = $users;        
+    }
+
+    public function index(){
+        $users = $this->users->all();
+        return view('users.index', compact('users'));
+    }
+}
+
+
+//code 5.19
+//resources/views/users/index.blade.php
+@foreach($users as $user)                
+                <li class="list-group-item">
+                    <h2 class="blockquote-reverse">
+                        <a href="/users/{{ $user->id }}">{{ $user->name }}</a>
+                    </h2> 
+                </li>
+                @endforeach
+
+
+
+// code 5.20
+// app/Article.php
+/**
+     * Get the tags for the article
+    */     
+   public function tags() {
+       return $this->belongsToMany('App\Tag');       
+   }
+
+
+// code 5.21
+// app/Country.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Country extends Model
+{
+
+  protected $fillable = [
+      'name'
+  ];
+
+  public function users() {
+      return $this->hasMany('App\User');
+  }
+
+  public function articles(){
+      return $this->hasManyThrough('App\Article', 'App\User');
+  }
+}
+
+
+
+// code 5.22
+// database/migrations/countries table
+public function up()
+    {
+        Schema::create('countries', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+
+
+
+// database/migrations/users table
+public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('country_id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+
+
+
+// database/factories/UserFactory.php
+$factory->define(App\User::class, function (Faker $faker) {
+    return [
+      'country_id' => $faker->randomDigit,
+        'name' => $faker->name,
+        'email' => $faker->unique()->safeEmail,
+        'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
+        'remember_token' => str_random(10),
+    ];
+});
+
+
+
+//code 5.23
+//resources/views/articles/show.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="pb-3 mb-4 font-italic border-bottom">{{ $article->title }}</h3>  by
+                    <p>{{ $article->user->name }}</p>
+                </div>
+
+                <div class="panel-body">
+                    <li class="list-group-item">{{ $article->body }}</li>
+                    Tags:
+                    @foreach($tags as $tag)
+                    {{ $tag->tag }}...
+                    @endforeach
+                    <li class="list-group-item-info">Other Articles by
+                        <p>
+                            <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+                        </p>
+                        This user belongs to {{ $country->name }}<p></p>
+                    </li>
+
+                    <h3 class="blog-post">
+                      All articles from {{ $country->name }}
+                    </h3>
+                    @foreach($country->articles as $article)
+                    <li class="list-group-item">
+                      <a href="/articles/{{ $article->id }}">
+                        {{ $article->title }}
+                      </a>
+                    </li>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+
+
+//code 5.24
+//database/migrations/comments table
+class CreateCommentsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+     public function up()
+     {
+         Schema::create('comments', function (Blueprint $table) {
+             $table->increments('id');
+             $table->integer('user_id');
+             $table->text('body');
+             $table->integer('commentable_id');
+             $table->string('commentable_type');
+             $table->timestamps();
+         });
+     }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('comments');
+    }
+}
+
+
+
+
+// code 5.25
+// app/Comment.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Comment extends Model
+{
+  /**
+  * Get all of the owning commentable models.
+  */
+  public function commentable(){
+    return $this->morphTo();
+  }
+
+  public function user() {
+      return $this->belongsTo('App\User');
+  }
+
+  public function users() {
+      return $this->belongsToMany('App\User');
+  }
+
+  public function article() {
+      return $this->belongsTo('App\Article');
+  }
+
+  public function articles() {
+      return $this->belongsToMany('App\Article');
+  }
+
+
+}
+
+
+
+-----------------------
+
+// app/Article.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Article extends Model
+{
+    //
+    protected $fillable = [
+        'user_id', 'title', 'body',
+    ];
+
+    public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+    /**
+     * Get the tags for the article
+    */
+
+   public function tags() {
+       return $this->belongsToMany('App\Tag');
+   }
+
+   /**
+   * Get all of the profiles' comments.
+   */
+   public function comments(){
+     return $this->morphMany('App\Comment', 'commentable');
+   }
+}
+
+
+----------------------
+
+
+// app/Profile.php
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Profile extends Model
+{
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id', 'city', 'about',
+    ];
+
+    public function user() {
+
+        return $this->belongsTo('App\User');
+
+    }
+
+    /**
+    * Get all of the profiles' comments.
+    */
+    public function comments(){
+      return $this->morphMany('App\Comment', 'commentable');
+    }
+}
+
+
+--------------------
+
+// app/User.php
+<?php
+
+namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    public function profile() {
+
+        return $this->hasOne('App\Profile');
+
+    }
+
+    public function article() {
+        return $this->hasOne('App\Article');
+    }
+
+    public function articles() {
+        return $this->hasMany('App\Article');
+    }
+
+    public function role() {
+        return $this->hasOne('App\Role');
+    }
+
+    public function roles() {
+        return $this->hasMany('App\Role');
+    }
+
+    public function country() {
+        return $this->beongsTo('App\Country');
+    }
+
+    public function comment() {
+        return $this->hasOne('App\Comment');
+    }
+
+    public function comments() {
+        return $this->hasMany('App\Comment');
+    }
+}
+
+
+---------------------------
+
+//code 5.26
+// database/factories/UserFactory.php
+<?php
+
+use Faker\Generator as Faker;
+
+/*
+|--------------------------------------------------------------------------
+| Model Factories
+|--------------------------------------------------------------------------
+|
+| This directory should contain each of the model factory definitions for
+| your application. Factories provide a convenient way to generate new
+| model instances for testing / seeding your application's database.
+|
+*/
+
+$factory->define(App\User::class, function (Faker $faker) {
+    return [
+      'country_id' => $faker->biasedNumberBetween($min = 1, $max = 20, $function = 'sqrt'),
+        'name' => $faker->name,
+        'email' => $faker->unique()->safeEmail,
+        'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
+        'remember_token' => str_random(10),
+    ];
+});
+
+$factory->define(App\Article::class, function (Faker $faker) {
+    return [
+        'user_id' => App\User::all()->random()->id,
+        'title' => $faker->sentence,
+        'body' => $faker->paragraph(random_int(3, 5))
+    ];
+});
+
+$factory->define(App\Profile::class, function (Faker $faker) {
+    return [
+        'user_id' => App\User::all()->random()->id,
+        'city' => $faker->city,
+        'about' => $faker->paragraph(random_int(3, 5))
+    ];
+});
+
+$factory->define(App\Tag::class, function (Faker $faker) {
+    return [
+        'tag' => $faker->word
+    ];
+});
+
+$factory->define(App\Role::class, function (Faker $faker) {
+    return [
+        'name' => $faker->word
+    ];
+});
+
+$factory->define(App\Country::class, function (Faker $faker) {
+    return [
+        'name' => $faker->country
+    ];
+});
+
+$factory->define(App\Comment::class, function (Faker $faker) {
+
+    return [
+      'user_id' => $faker->biasedNumberBetween($min = 1, $max = 10, $function = 'sqrt'),
+        'body' => $faker->paragraph(random_int(3, 5)),
+        'commentable_id' => $faker->randomDigit,
+        'commentable_type' => function(){
+          $input = ['App\Article', 'App\Profile'];
+          $model = $input[mt_rand(0, count($input) - 1)];
+          return $model;
+        }
+    ];
+});
+
+
+
+----------------
+
+//code 5.27
+//database/seeds/DatabaseSeeder.php
+<?php
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        // $this->call(UsersTableSeeder::class);
+        // $this->call(UsersTableSeeder::class);
+        factory(App\User::class, 10)->create()->each(function($user){
+            $user->profile()->save(factory(App\Profile::class)->make());
+        });
+
+        factory(App\Tag::class, 20)->create();
+
+        factory(App\Country::class, 20)->create();
+
+        factory(App\Comment::class, 50)->create();
+
+        factory(App\Article::class, 50)->create()->each(function($article){
+          $ids = range(1, 50);
+          shuffle($ids);
+          $sliced = array_slice($ids, 1, 20);
+          $article->tags()->attach($sliced);
+        });
+
+        factory(App\Role::class, 3)->create()->each(function($role){
+          $ids = range(1, 2);
+          shuffle($ids);
+          $sliced = array_slice($ids, 1, 5);
+          $role->users()->attach($sliced);
+        });
+    }
+}
+
+
+
+-----------------------
+
+
+//code 5.28
+mysql> USE laravelmodelrelations
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> SHOW TABLES;
++---------------------------------+
+| Tables_in_laravelmodelrelations |
++---------------------------------+
+| article_tag                     |
+| articles                        |
+| comments                        |
+| countries                       |
+| migrations                      |
+| password_resets                 |
+| profiles                        |
+| role_user                       |
+| roles                           |
+| tags                            |
+| users                           |
++---------------------------------+
+11 rows in set (0.00 sec)
+
+mysql> SELECT * FROM COMMENTS;
+
+
+
+-----------------------
+
+
+//code 5.29
+//app/HTTP/Controllers/ArticleController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Article;
+use App\Country;
+use App\User;
+use App\Tag;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ArticleController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $articles = Article::all();
+        //$articles = Article::where('active', 1)->orderBy('title', 'desc')->take(10)->get();
+        $users = User::all();
+        $tags = Tag::all();
+        return view('articles.index', compact('articles', 'users', 'tags'));
+    }
+
+    public function main()
+    {
+        $articles = Article::where('user_id', 1)->orderBy('title', 'desc')->take(4)->get();
+        $tags = Tag::all();
+        return view('welcome', ['articles' => $articles, 'tags' => $tags]);
+    }
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Article $article)
+    {
+        $tags = Article::find($article->id)->tags;
+        $article = Article::find($article->id);
+        $comments = $article->comments;
+        $user = User::find($article->user_id);
+        $country = Country::where('id', $user->country_id)->get()->first();
+
+        return view('articles.show', compact('tags','article',
+        'country', 'comments', 'user'));
+    }
+     /**
+     * Display the specified resource.
+     *
+     * @param  \App\Article  $article
+     * @return \Illuminate\Http\Response
+     */
+    public function articles($id)
+    {
+        $user = User::find($id);
+
+        return view('articles.articles', compact('user'));
+    }
+}
+
+
+-----------------------
+
+
+// code 5.30
+// resources/views/articles/show.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="pb-3 mb-4 font-italic border-bottom">{{ $article->title }}</h3>  by
+                    <p>{{ $article->user->name }}</p>
+                </div>
+
+                <div class="panel-body">
+                    <li class="list-group-item">{{ $article->body }}</li>
+                    <strong>Tags:</strong>
+                    @foreach($tags as $tag)
+                      {{ $tag->tag }}...
+                    @endforeach
+                </div>
+                <p></p>
+                <div class="panel panel-default">
+                  <h3 class="pb-3 mb-4 font-italic border-bottom">
+                    All Comments for this Article
+                  </h3>
+                  @foreach($user->profile->comments as $comment)
+                  <li class="list-group-item">{{ $comment->body }}</li>
+                  <li class="list-group-item">by <strong>
+                    <a href="/users/{{ $comment->user_id }}">{{ $comment->user->name }}</a>
+                  </strong></li>
+                  @endforeach
+                </div>
+            </div>
+        </div>
+        <aside class="col-md-4 blog-sidebar">
+          <div class="p-3">
+              <h3 class="blog-post-title">
+                THis user belongs to {{ $country->name }}
+              </h3>
+              <li class="list-group-item-info">Other Articles by
+                  <p>
+                      <a href="/users/{{ $article->user_id }}/articles">{{ $article->user->name }}</a>
+                  </p>
+              </li>
+              <h3 class="blog-post">
+                All articles from {{ $country->name }}
+              </h3>
+              <hr class="linenums" color="red">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  @foreach($country->articles as $article)
+                  <li class="list-group-item">
+                    <a href="/articles/{{ $article->id }}">
+                      {{ $article->title }}
+                    </a>
+                  </li>
+                  @endforeach
+                </div>
+                <hr class="linenums" color="red">
+            </div>
+          </div>
+        </aside>
+    </div>
+</div>
+@endsection
+
+
+-----------------------
+
+
+// code 5.31
+// app/HTTP/Controllers/UserController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\User;
+use App\Profile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+use RepositoryDB\DBUserRepository as DBUserRepository;
+
+class UserController extends Controller
+{
+    public $users;
+
+    public function __construct(DBUserRepository $users) {
+
+        $this->users = $users;
+
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $users = $this->users->all();
+        return view('users.index', compact('users'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function show(User $user)
+    {
+      //$roles = User::find($user->id)->roles;
+        $user = User::find($user->id);
+        return view('users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(User $user)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, User $user)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(User $user)
+    {
+        //
+    }
+}
+
+
+----------------------
+
+// code 5.32
+// resources/views/users/show.blade.php
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-10 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="pb-3 mb-4 font-italic border-bottom">
+                    Profile of {{ $user->name }}
+                  </h3>
+                </div>
+                <div class="panel-body">
+                  <strong>Name : </strong>
+                    <li class="list-group-item-info">{{ $user->name }}</li>
+                    <strong>Email : </strong>
+                    <li class="list-group-item-info">{{ $user->email }}</li>
+                    <strong>City : </strong>
+                    <li class="list-group-item-info">{{ $user->profile->city }}</li>
+                    <strong>About : </strong>
+                    <li class="list-group-item-info">{{ $user->profile->about }}</li>
+                </div>
+                <div class="panel panel-default">
+                    <hr>
+                </div>
+                <h3 class="pb-1 mb-2 font-italic border-bottom">
+                  All Comments about {{$user->name}}
+                </h3>
+                <div class="panel panel-default">
+                  @foreach($user->profile->comments as $comment)
+                  <li class="list-group-item">{{ $comment->body }}</li>
+                  <li class="list-group-item">by <strong>
+                    <a href="/users/{{ $comment->user_id }}">{{ $comment->user->name }}</a>
+                  </strong></li>
+                  @endforeach
+                </div>
+                <div class="panel panel-default">
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+--------------------
+
+
